@@ -19,6 +19,10 @@ namespace Momentum
 	{
 		public MomentumGame()
 		{
+			if ( IsServer )
+			{
+				new HudEntity();
+			}
 		}
 
 		public override void ClientJoined(Client client)
