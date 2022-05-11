@@ -19,7 +19,7 @@ namespace Momentum
 			SetModel("models/citizen/citizen.vmdl");
 			Controller = new WalkController();
 			Animator = new StandardPlayerAnimator();
-			CameraMode = new FirstPersonCamera();
+			CameraMode = new MomentumCamera();
 			EnableAllCollisions = true;
 			EnableDrawing = true;
 			EnableHideInFirstPerson = true;
@@ -55,7 +55,6 @@ namespace Momentum
 		{
 			if (LifeState == LifeState.Dead)
 			{
-
 				return;
 			}
 

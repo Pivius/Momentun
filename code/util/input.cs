@@ -31,6 +31,9 @@ namespace Momentum
 					buttons |= ValidMoveButtons[i] << 1;
 			}
 
+			//if (Input.MouseWheel != 0)
+			//	buttons &= ((ulong)InputButton.Jump) << 1;
+
 			OldButtons = Buttons;
 			Buttons = buttons;
 		}
