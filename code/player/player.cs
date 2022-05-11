@@ -40,7 +40,7 @@ namespace Momentum
 
 			if (LifeState == LifeState.Dead)
 			{
-				if (KeyPressed(SpawnButtons))
+				if (KeyPressed(SpawnButtons) && (IsServer))
 					Respawn();
 
 				return;
