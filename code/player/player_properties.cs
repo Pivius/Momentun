@@ -23,17 +23,18 @@ namespace Momentum
 				["Gravity"] = 800.0f,
 				["JumpPower"] = 270.0f, //268.3281572999747f * 1.2f,
 				["StepSize"] = 16.0f,
-				["StandableAngle"] = 45,
+				["StandableAngle"] = 45.0f,
 				["FallDamageMultiplier"] = 0.0563f,
 				["AutoJump"] = true,
 				["AllowAutoMovement"] = true,
+				["MoveState"] = (STATE) 0,
 
 				// # Accelerate Properties
 
 				["CanAirStrafe"] = true,
 				["AirAccelerate"] = 1.0f,
 				["CanAccelerate"] = true,
-				["Accelerate"] = 10.0f,
+				["Accelerate"] = 15.0f,
 				["WaterAccelerate"] = 4.0f,
 
 
@@ -44,10 +45,27 @@ namespace Momentum
 
 				// # Quake Properties
 
-				["SideStrafeMaxSpeed"] = 400.0f,
-				["StrafeAcceleration"] = 70.0f,
-				["AirStopAcceleration"] = 1.0f,
+				["SideStrafeMaxSpeed"] = 300.0f,
+				["StrafeAcceleration"] = 1.0f,
+				["AirStopAcceleration"] = 2.5f,
 				["AirControl"] = 150.0f,
-			});
+			}
+		);
+
+		public Property ViewProps = new(
+			new Dictionary<string, object>
+			{
+				["StandViewOffset"] = 64.0f,
+				["DuckViewOffset"] = 28.0f,
+				["DeadViewOffset"] = 14.0f,
+
+				// # Player Hulls
+
+				["StandMins"] = new Vector3(-16, -16, 0),
+				["StandMaxs"] = new Vector3(16, 16, 72),
+				["DuckMins"] = new Vector3(-16, -16, 0),
+				["DuckMaxs"] = new Vector3(16, 16, 32),
+			}
+		);
     }
 }
