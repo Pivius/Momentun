@@ -9,10 +9,9 @@ namespace Momentum
     public partial class MomentumPlayer : Player
     {
         protected ulong SpawnButtons = ((ulong) InputButton.Forward | (ulong) InputButton.Right | (ulong) InputButton.Left | (ulong) InputButton.Back | (ulong) InputButton.Jump);
+		public Property MovementProps = new();
+		public MomentumPlayer(){}
 
-		public MomentumPlayer()
-		{
-		}
 
 		public override void Respawn()
 		{
@@ -20,6 +19,7 @@ namespace Momentum
 			Controller = new WalkController();
 			Animator = new StandardPlayerAnimator();
 			CameraMode = new MomentumCamera();
+			
 			EnableAllCollisions = true;
 			EnableDrawing = true;
 			EnableHideInFirstPerson = true;
@@ -38,27 +38,27 @@ namespace Momentum
 			if (IsServer)
 				ProcessMoveButtons();
 
-			if (LifeState == LifeState.Dead)
+			if (LifeState != LifeState.Dead)
+			{
+				var controller = GetActiveController();
+
+				controller?.Simulate(client, this, GetActiveAnimator());
+			}
+			else
 			{
 				if (KeyPressed(SpawnButtons) && (IsServer))
 					Respawn();
 
 				return;
 			}
-
-			var controller = GetActiveController();
-
-			controller?.Simulate(client, this, GetActiveAnimator());
 		}
 
 		public override void FrameSimulate(Client client)
 		{
-			if (LifeState == LifeState.Dead)
+			if (LifeState != LifeState.Dead)
 			{
-				return;
+				base.FrameSimulate(client);
 			}
-
-			base.FrameSimulate(client);
 		}
 
 		public override void OnKilled()
