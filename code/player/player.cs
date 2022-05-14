@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 namespace Momentum
 {
     public partial class MomentumPlayer : Player
-    {
+	{
         protected ulong SpawnButtons = ((ulong) InputButton.Forward | (ulong) InputButton.Right | (ulong) InputButton.Left | (ulong) InputButton.Back | (ulong) InputButton.Jump);
-		public Property MovementProps = new();
 		public MomentumPlayer(){}
 
 
 		public override void Respawn()
 		{
 			SetModel("models/citizen/citizen.vmdl");
-			Controller = new WalkController();
+			Controller = new MomentumController();
 			Animator = new StandardPlayerAnimator();
 			CameraMode = new MomentumCamera();
 			
