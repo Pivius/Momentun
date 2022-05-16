@@ -140,7 +140,6 @@ namespace Momentum
 			Position = mover.Position;
 			Velocity = mover.Velocity;
 
-			BetterLog.Info( Time.Now - ClipTime.Absolute );
 			if ( ShouldClip.Value)
 			{
 				Velocity = primal_velocity;
