@@ -17,7 +17,7 @@ namespace Momentum
 		public BaseController()
 		{
 			AirAccelerate = new AirAccelerate();
-			//Duck = new Duck(this);
+			Duck = new Duck(this);
 			Accelerate = new Accelerate();
 			Gravity = new Gravity();
 			Friction = new Friction();
@@ -51,14 +51,14 @@ namespace Momentum
 
 		public virtual Vector3 GetPlayerMins()
 		{
-			return ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
-			//return Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
+			//return ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
+			return Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs()
 		{
-			return ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
-			//return Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
+			//return ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
+			return Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
 		}
 
 		public virtual float GetPlayerViewOffset(bool is_ducked)
@@ -100,6 +100,9 @@ namespace Momentum
 
 		public override void FrameSimulate()
 		{
+			Duck.ReduceTimers();
+			Duck.UpdateDuckJumpEyeOffset();
+			Duck.Move();
 			base.FrameSimulate();
 
 			//EyeRotation = Input.Rotation;

@@ -9,16 +9,17 @@ namespace Momentum
 	{
 		// # Fields
 		public AirAccelerate AirAccelerate;
-		public Accelerate Accelerate;
-		public Gravity Gravity;
+		public new Accelerate Accelerate;
+		public new Gravity Gravity;
 		public Friction Friction;
 		public Water Water;
+		public new Duck Duck;
 
 		public float GetWalkSpeed()
 		{
 			float walk_speed = (GetPlayer().KeyDown(InputButton.Walk) && (bool)MoveProp["CanWalk"]) ? (float)MoveProp["WalkSpeed"] : ((GetPlayer().KeyDown(InputButton.Run) && (bool)MoveProp["CanRun"]) ? (float)MoveProp["RunSpeed"] : (float)MoveProp["DefaultSpeed"]);
-			return walk_speed;
-			//return Duck.IsDucked ? walk_speed * ((float)MoveProp["DuckedWalkSpeed"]/(float)MoveProp["DefaultSpeed"]) : walk_speed;
+			//return walk_speed;
+			return Duck.IsDucked ? walk_speed * ((float)MoveProp["DuckedWalkSpeed"]/(float)MoveProp["DefaultSpeed"]) : walk_speed;
 		}
 
 		public Vector3 WishVel(float strafe_speed)
@@ -234,7 +235,7 @@ namespace Momentum
 			
 			if (Water.WaterLevel >= WATERLEVEL.Waist)
 			{
-				base.ClearGroundEntity();
+				ClearGroundEntity();
 				Velocity = Velocity.WithZ(100);
 				return;
 			}
@@ -242,9 +243,12 @@ namespace Momentum
 			if (!OnGround())
 				return;
 
-			base.ClearGroundEntity();
+			ClearGroundEntity();
 			Velocity = Gravity.AddGravity((float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ((float)MoveProp["JumpPower"]));
 			AddEvent("jump");
+
+			//Duck.JumpTime = Duck.JUMP_TIME;
+			//Duck.InDuckJump = true;
 		}
 
 		public override void CheckLadder()
@@ -285,7 +289,8 @@ namespace Momentum
 		public virtual bool StartMove()
 		{
 			//if (Host.IsServer)
-				//Duck.TryDuck();
+			//Duck.TryDuck();
+			//Log.Info( GetViewOffset() );
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
 			EyeRotation = Input.Rotation;
 			WishVelocity = WishVel((float)MoveProp["MaxMove"]);
@@ -309,7 +314,7 @@ namespace Momentum
 		public virtual bool SetupMove()
 		{
 			var player = GetPlayer();
-
+			Duck.ReduceTimers();
 			Swimming = Water.CheckWater(Position, OBBMins, OBBMaxs, GetViewOffset(), Pawn);
 
 			//
@@ -341,7 +346,7 @@ namespace Momentum
 					CheckJumpButton();
 	
 				Water.Move(this);
-				base.CategorizePosition(OnGround());
+				CategorizePosition(OnGround());
 
 				if (OnGround())
 					Velocity = Velocity.WithZ(0);
@@ -361,6 +366,9 @@ namespace Momentum
 					Friction.Move(ref velocity, (float)MoveProp["Friction"], (float)MoveProp["StopSpeed"]);
 					Velocity = velocity;
 				}
+
+				Duck.UpdateDuckJumpEyeOffset();
+				Duck.Move();
 
 				if (!IsTouchingLadder)
 					WishVelocity = WishVelocity.WithZ(0);
@@ -394,7 +402,7 @@ namespace Momentum
 					Velocity = Velocity.WithZ(0);
 				}
 
-				base.CategorizePosition(bStayOnGround);
+				CategorizePosition(bStayOnGround);
 			}
 			return false;
 		}
