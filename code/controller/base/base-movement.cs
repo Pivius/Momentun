@@ -247,8 +247,8 @@ namespace Momentum
 			Velocity = Gravity.AddGravity((float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ((float)MoveProp["JumpPower"]));
 			AddEvent("jump");
 
-			//Duck.JumpTime = Duck.JUMP_TIME;
-			//Duck.InDuckJump = true;
+			Duck.JumpTime = Duck.JUMP_TIME;
+			Duck.InDuckJump = true;
 		}
 
 		public override void CheckLadder()

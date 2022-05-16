@@ -9,6 +9,7 @@ namespace Momentum
     public partial class MomentumPlayer : Player
 	{
         protected ulong SpawnButtons = ((ulong) InputButton.Forward | (ulong) InputButton.Right | (ulong) InputButton.Left | (ulong) InputButton.Back | (ulong) InputButton.Jump);
+		public int Flags = 0;
 		public MomentumPlayer(){}
 
 
@@ -24,6 +25,21 @@ namespace Momentum
 			EnableHideInFirstPerson = true;
 			EnableShadowInFirstPerson = true;
 			base.Respawn();
+		}
+
+		public virtual void AddFlag(PlayerFlags flag)
+		{
+			Flags |= (int)flag;
+		}
+
+		public virtual bool GetFlag(PlayerFlags flag)
+		{
+			return (Flags &= ((int) flag)) != 0;
+		}
+
+		public virtual void RemoveFlag(PlayerFlags flag)
+		{
+			Flags &= ~(int)flag;
 		}
 
 		public override void BuildInput(InputBuilder input)

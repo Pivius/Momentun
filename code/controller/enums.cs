@@ -15,11 +15,17 @@ namespace Momentum
 		WATER
 	}
 
-		public enum WATERLEVEL : int
+	public enum WATERLEVEL : int
 	{
 		NotInWater = 0,
 		Feet,
 		Waist,
 		Eyes
+	}
+
+	public enum PlayerFlags : int
+	{
+		NONE = 0,
+		DUCKING,
 	}
 }

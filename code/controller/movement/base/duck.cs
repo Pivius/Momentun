@@ -104,6 +104,7 @@ namespace Momentum
 
 			IsDucked = false;
 			IsDucking = false;
+			Controller.GetPlayer().RemoveFlag( PlayerFlags.DUCKING );
 			InDuckJump = false;
 			Controller.ViewOffset = Controller.GetPlayerViewOffset( false );
 			Controller.Position = new_origin;
@@ -154,6 +155,7 @@ namespace Momentum
 			delta_z *= trace.Fraction;
 			delta_z -= hull_delta.z;
 
+			Controller.GetPlayer().RemoveFlag( PlayerFlags.DUCKING );
 			IsDucked = false;
 			IsDucking = false;
 			InDuckJump = false;
@@ -172,9 +174,10 @@ namespace Momentum
 
 		public void FinishDuck()
 		{
-			//if ( IsDucked )
-				//return;
+			if ( Controller.GetPlayer().GetFlag( PlayerFlags.DUCKING ) )
+				return;
 
+			Controller.GetPlayer().AddFlag( PlayerFlags.DUCKING );
 			IsDucked = true;
 			IsDucking = false;
 
@@ -186,6 +189,7 @@ namespace Momentum
 
 		public void StartUnDuckJump()
 		{
+			Controller.GetPlayer().AddFlag( PlayerFlags.DUCKING );
 			IsDucked = true;
 			IsDucking = false;
 
@@ -229,11 +233,11 @@ namespace Momentum
 		public void Move()
 		{
 			bool bInAir = !Controller.OnGround();
-			bool bInDuck = IsDucked;
+			bool bInDuck = Controller.GetPlayer().GetFlag( PlayerFlags.DUCKING );
 			bool bDuckJump = JumpTime > 0.0f;
 			bool bDuckJumpTime = DuckJumpTime > 0.0f;
 			bool DuckButton = Controller.GetPlayer().KeyDown( InputButton.Duck );
-			
+
 			if ( DuckButton || IsDucking || bInDuck || bDuckJump)
 			{
 				if (DuckButton || bDuckJump)
@@ -286,7 +290,6 @@ namespace Momentum
 				{
 					if (InDuckJump)
 					{
-						Log.Info( "test" );
 						if (!DuckButton)
 						{
 							TraceResult trace = TraceUtil.PlayerBBox( Controller.Position, Controller.Position, Controller );
@@ -356,6 +359,7 @@ namespace Momentum
 							DuckTime = DUCK_TIME;
 							IsDucked = true;
 							IsDucking = false;
+							Controller.GetPlayer().AddFlag( PlayerFlags.DUCKING );
 						}
 					}
 				}
