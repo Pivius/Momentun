@@ -18,25 +18,22 @@ namespace Momentum
 			LookupMethod = lookup;
 		}
 
-		public T Value()
+		public T Value
 		{
-			Cleanup();
+			get
+			{
+				Cleanup();
 
-			if (!HasChecked())
-				Update();
+				if ( !HasChecked() )
+					Update();
 
-			return Map[Time.Now];
+				return Map[Time.Now];
+			}
 		}
 
-		public void Update()
-		{
-			Set(LookupMethod());
-		}
+		public void Update() => Set( (T)LookupMethod() );
 
-		public bool HasChecked()
-		{
-			return Map.ContainsKey(Time.Now);
-		}
+		public bool HasChecked() => Map.ContainsKey( Time.Now );
 
 		public void Set(T value)
 		{
@@ -47,7 +44,7 @@ namespace Momentum
 
 		public void Cleanup()
 		{
-			foreach (var map in Map)
+			foreach ( KeyValuePair<float, T> map in Map)
 			{
 				if (Time.Now > (map.Key + Cooldown))
 					Map.Remove(map.Key);
