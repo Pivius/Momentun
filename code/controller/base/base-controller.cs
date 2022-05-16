@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System;
 using Sandbox;
+using System.Threading.Tasks;
 
 namespace Momentum
 {
@@ -13,6 +14,8 @@ namespace Momentum
 		public Vector3 OBBMins{get; set;} = new Vector3(-16, -16, 0);
 		public Vector3 OBBMaxs{get; set;} = new Vector3(16, 16, 72);
 		public Vector3 OldVelocity{get; set;}
+		public TimeAssociatedMap<bool> ShouldClip;
+		public TimeSince ClipTime;
 
 		public BaseController()
 		{
@@ -23,6 +26,19 @@ namespace Momentum
 			Friction = new Friction();
 			Water = new Water();
 			Unstuck = new Sandbox.Unstuck(this);
+			ShouldClip = new TimeAssociatedMap<bool>( 1f, GetShouldClip );
+		}
+
+		public bool GetShouldClip()
+		{
+			if (GetPlayer().IsServer)
+			{
+				return ClipTime <= (float)MoveProp["ClipTime"];
+			}
+			else
+			{
+				return ShouldClip.LastValue && (ClipTime <= (float)MoveProp["ClipTime"]);
+			}
 		}
 
 		public virtual MomentumPlayer GetPlayer() => (MomentumPlayer)Pawn;
@@ -101,8 +117,8 @@ namespace Momentum
 		public override void FrameSimulate()
 		{
 			Duck.ReduceTimers();
-			Duck.UpdateDuckJumpEyeOffset();
-			Duck.Move();
+			//Duck.UpdateDuckJumpEyeOffset();
+			//Duck.Move();
 			base.FrameSimulate();
 
 			//EyeRotation = Input.Rotation;

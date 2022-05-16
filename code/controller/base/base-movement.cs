@@ -17,7 +17,7 @@ namespace Momentum
 
 		public float GetWalkSpeed()
 		{
-			float walk_speed = (GetPlayer().KeyDown(InputButton.Walk) && (bool)MoveProp["CanWalk"]) ? (float)MoveProp["WalkSpeed"] : ((GetPlayer().KeyDown(InputButton.Run) && (bool)MoveProp["CanRun"]) ? (float)MoveProp["RunSpeed"] : (float)MoveProp["DefaultSpeed"]);
+			float walk_speed = (Input.Down( InputButton.Walk) && (bool)MoveProp["CanWalk"]) ? (float)MoveProp["WalkSpeed"] : ((Input.Down( InputButton.Run) && (bool)MoveProp["CanRun"]) ? (float)MoveProp["RunSpeed"] : (float)MoveProp["DefaultSpeed"]);
 			//return walk_speed;
 			return Duck.IsDucked ? walk_speed * ((float)MoveProp["DuckedWalkSpeed"]/(float)MoveProp["DefaultSpeed"]) : walk_speed;
 		}
@@ -129,6 +129,8 @@ namespace Momentum
 		/// </summary>
 		public virtual void TryPlayerMove()
 		{
+			var primal_velocity = Velocity;
+
 			MoveHelper mover = new MoveHelper(Position, Velocity);
 			mover.Trace = mover.Trace.Size(OBBMins, OBBMaxs).Ignore(Pawn);
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
@@ -137,6 +139,16 @@ namespace Momentum
 
 			Position = mover.Position;
 			Velocity = mover.Velocity;
+
+			BetterLog.Info( Time.Now - ClipTime.Absolute );
+			if ( ShouldClip.Value)
+			{
+				Velocity = primal_velocity;
+			}
+			else
+			{
+				ShouldClip.Set( false );
+			}
 		}
 
 		public override void AirMove()
@@ -247,13 +259,15 @@ namespace Momentum
 			Velocity = Gravity.AddGravity((float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ((float)MoveProp["JumpPower"]));
 			AddEvent("jump");
 
+			ShouldClip.Set( true );
+			ClipTime = 0;
 			Duck.JumpTime = Duck.JUMP_TIME;
 			Duck.InDuckJump = true;
 		}
 
 		public override void CheckLadder()
 		{
-			if (IsTouchingLadder && GetPlayer().KeyPressed(InputButton.Jump))
+			if (IsTouchingLadder && Input.Pressed( InputButton.Jump))
 			{
 				Velocity = LadderNormal * 100.0f;
 				IsTouchingLadder = false;
@@ -342,7 +356,7 @@ namespace Momentum
 				if (Velocity.z < 0.0f && Water.JumpTime > 0.0f)
 					Water.JumpTime = 0.0f;
 
-				if ((bool)MoveProp["AutoJump"] ? player.KeyDown(InputButton.Jump) : player.KeyPressed(InputButton.Jump))
+				if ((bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump) : Input.Pressed( InputButton.Jump))
 					CheckJumpButton();
 	
 				Water.Move(this);
@@ -356,7 +370,7 @@ namespace Momentum
 			else
 			{
 		
-				if ((bool)MoveProp["AutoJump"] ? player.KeyDown(InputButton.Jump) : player.KeyPressed(InputButton.Jump))
+				if ((bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump) : Input.Pressed( InputButton.Jump))
 					CheckJumpButton();
 
 				if (OnGround())

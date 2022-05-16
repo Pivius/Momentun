@@ -236,13 +236,13 @@ namespace Momentum
 			bool bInDuck = Controller.GetPlayer().GetFlag( PlayerFlags.DUCKING );
 			bool bDuckJump = JumpTime > 0.0f;
 			bool bDuckJumpTime = DuckJumpTime > 0.0f;
-			bool DuckButton = Controller.GetPlayer().KeyDown( InputButton.Duck );
+			bool DuckButton = Input.Down( InputButton.Duck );
 
 			if ( DuckButton || IsDucking || bInDuck || bDuckJump)
 			{
 				if (DuckButton || bDuckJump)
 				{
-					if ( Controller.GetPlayer().KeyPressed( InputButton.Duck ) && !bInDuck && !bDuckJumpTime)
+					if ( Input.Pressed( InputButton.Duck ) && !bInDuck && !bDuckJumpTime)
 					{
 						DuckTime = DUCK_TIME;
 						IsDucking = true;
@@ -315,7 +315,7 @@ namespace Momentum
 
 					if ( (bool)Controller.MoveProp["AllowAutoMovement"] || bInAir || IsDucking)
 					{
-						if ( Controller.GetPlayer().KeyReleased( InputButton.Duck ) )
+						if ( Input.Released( InputButton.Duck ) )
 						{
 							DuckTime = DUCK_TIME;
 						}
