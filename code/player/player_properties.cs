@@ -25,9 +25,12 @@ namespace Momentum
 				["StepSize"] = 16.0f,
 				["StandableAngle"] = 45.0f,
 				["FallDamageMultiplier"] = 0.0563f,
+				["ClipTime"] = 0.5f,
 				["AutoJump"] = true,
 				["AllowAutoMovement"] = true,
 				["MoveState"] = (STATE) 0,
+				["DoubleJumpZ"] = 100f,
+				["RampJump"] = 2,
 
 				// # Accelerate Properties
 

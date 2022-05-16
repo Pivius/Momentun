@@ -50,8 +50,7 @@ namespace Momentum
 
 		public override void Simulate(Client client)
 		{
-			if (IsServer)
-				ProcessMoveButtons();
+			ProcessMoveButtons();
 
 			if (LifeState != LifeState.Dead)
 			{
