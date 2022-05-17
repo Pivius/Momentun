@@ -97,6 +97,12 @@ namespace Momentum
 			}
 		}
 
+		public virtual void ReduceTimers()
+		{
+			float frameMilliSec = 1000.0f * Time.Delta;
+			Duck.ReduceTimers( frameMilliSec );
+		}
+
 		public bool GetShouldClip()
 		{
 			if ( GetPlayer().IsServer )

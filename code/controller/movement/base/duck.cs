@@ -413,13 +413,11 @@ namespace Momentum
 			}
 		}
 
-		public void ReduceTimers()
+		public void ReduceTimers(float frameMSec)
 		{
-			float frameMilliSec = 1000.0f * Time.Delta;
-
 			if ( DuckTimer > 0 )
 			{
-				DuckTimer -= frameMilliSec;
+				DuckTimer -= frameMSec;
 
 				if ( DuckTimer < 0 )
 				{
@@ -429,7 +427,7 @@ namespace Momentum
 
 			if ( DuckJumpTimer > 0 )
 			{
-				DuckJumpTimer -= frameMilliSec;
+				DuckJumpTimer -= frameMSec;
 
 				if ( DuckJumpTimer < 0 )
 				{
@@ -439,7 +437,7 @@ namespace Momentum
 
 			if ( JumpTime > 0 )
 			{
-				JumpTime -= frameMilliSec;
+				JumpTime -= frameMSec;
 
 				if ( JumpTime < 0 )
 				{
