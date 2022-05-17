@@ -42,6 +42,18 @@ namespace Momentum
 			return velocity - (normal * velocity.Dot( normal ));
 		}
 
+		public static Vector3 ClipVelocity( Vector3 velocity, Vector3 normal, float overBounce )
+		{
+			var backOff = velocity.Dot( normal );
+
+			if ( backOff < 0 )
+				backOff *= overBounce;
+			else
+				backOff /= overBounce;
+
+			return velocity - (normal * backOff);
+		}
+
 		/// <summary>
 		/// Consistent speed boosts when landing on a slope
 		/// </summary>
@@ -99,8 +111,9 @@ namespace Momentum
 
 			var pm = TraceBBox( vBumpOrigin, point, 4.0f );
 
-			if ( pm.Entity == null || Vector3.GetAngle( Vector3.Up,
-											  pm.Normal ) > (float)MoveProp["StandableAngle"] )
+			if ( pm.Entity == null || 
+				Vector3.GetAngle( Vector3.Up, pm.Normal ) > 
+				(float)MoveProp["StandableAngle"] )
 			{
 				ClearGroundEntity();
 				bMoveToEndPos = false;
@@ -169,9 +182,9 @@ namespace Momentum
 			var velocity = Velocity;
 
 			AirAccelerate.Move( ref velocity,
-					  WishVelocity,
-					  (float)MoveProp["MaxSpeed"],
-					  (float)MoveProp["AirAccelerate"] );
+						WishVelocity,
+						(float)MoveProp["MaxSpeed"],
+						(float)MoveProp["AirAccelerate"] );
 			Velocity = velocity;
 			Velocity += BaseVelocity;
 			TryPlayerMove();
@@ -213,9 +226,9 @@ namespace Momentum
 			Velocity = Velocity.WithZ( 0 );
 			velocity = Velocity;
 			Accelerate.Move( ref velocity,
-				   WishVelocity,
-				   GetWalkSpeed(),
-				   (float)MoveProp["Accelerate"] );
+					WishVelocity,
+					GetWalkSpeed(),
+					(float)MoveProp["Accelerate"] );
 			Velocity = velocity;
 			Velocity = Velocity.WithZ( 0 );
 
