@@ -21,7 +21,7 @@ namespace Momentum
 				["SwimSpeed"] = 250.0f,
 				["Gravity"] = 800.0f,
 				["JumpPower"] = 270.0f, //268.3281572999747f * 1.2f,
-				["StepSize"] = 16.0f,
+				["StepSize"] = 18.0f,
 				["StandableAngle"] = 45.0f,
 				["FallDamageMultiplier"] = 0.0563f,
 				["ClipTime"] = 0.5f,
@@ -47,7 +47,7 @@ namespace Momentum
 
 				// # Quake Properties
 
-				["SideStrafeMaxSpeed"] = 300.0f,
+				["SideStrafeMaxSpeed"] = 320.0f,
 				["StrafeAcceleration"] = 1.0f,
 				["AirStopAcceleration"] = 2.5f,
 				["AirControl"] = 150.0f,
