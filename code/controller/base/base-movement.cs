@@ -293,8 +293,6 @@ namespace Momentum
 			Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ( (float)MoveProp["JumpPower"] ) );
 			AddEvent( "jump" );
 
-			ShouldClip.Value = true;
-			ClipTime = 0;
 			Duck.JumpTime = Duck.JumpingTime;
 			Duck.InDuckJump = true;
 		}
@@ -363,7 +361,7 @@ namespace Momentum
 		/// </returns>
 		public virtual bool SetupMove()
 		{
-			Duck.ReduceTimers();
+			ReduceTimers();
 			Swimming = Water.CheckWater( Position, OBBMins, OBBMaxs, GetViewOffset(), Pawn );
 
 			//
