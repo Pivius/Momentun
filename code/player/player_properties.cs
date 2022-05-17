@@ -28,7 +28,7 @@ namespace Momentum
 				["AutoJump"] = true,
 				["AllowAutoMovement"] = true,
 				["MoveState"] = (STATE)0,
-				["DoubleJumpZ"] = 100f,
+				["DoubleJumpZ"] = 250f,
 				["RampJump"] = 2,
 
 				// # Accelerate Properties
@@ -47,8 +47,8 @@ namespace Momentum
 
 				// # Quake Properties
 
-				["SideStrafeMaxSpeed"] = 320.0f,
-				["StrafeAcceleration"] = 1.0f,
+				["SideStrafeMaxSpeed"] = 30.0f,
+				["StrafeAcceleration"] = 70.0f,
 				["AirStopAcceleration"] = 2.5f,
 				["AirControl"] = 150.0f,
 			}
