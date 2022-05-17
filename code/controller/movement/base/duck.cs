@@ -191,6 +191,7 @@ namespace Momentum
 
 			newPosition -= hullDelta;
 			Controller.Position = newPosition;
+			FixPlayerCrouchStuck( true );
 			Controller.CategorizePosition( Controller.OnGround() );
 		}
 
@@ -251,6 +252,8 @@ namespace Momentum
 				if ( !traceUp.StartedSolid )
 					return true;
 			}
+			else if ( trace.Fraction == 1.0f )
+				return true;
 
 			return false;
 		}
@@ -305,7 +308,6 @@ namespace Momentum
 								TraceResult trace = TraceUtil.PlayerBBox( Controller.Position,
 												 Controller.Position,
 												 Controller );
-
 								if ( CanUnDuckJump( ref trace ) )
 								{
 									FinishUnDuckJump( trace );
@@ -330,7 +332,6 @@ namespace Momentum
 							TraceResult trace = TraceUtil.PlayerBBox( Controller.Position,
 												Controller.Position,
 												Controller );
-
 							if ( CanUnDuckJump( ref trace ) )
 							{
 								FinishUnDuckJump( trace );
