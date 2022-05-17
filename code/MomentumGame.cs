@@ -1,9 +1,4 @@
 ﻿using Sandbox;
-using Sandbox.UI.Construct;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 
 namespace Momentum
@@ -25,9 +20,9 @@ namespace Momentum
 			}
 		}
 
-		public override void ClientJoined(Client client)
+		public override void ClientJoined( Client client )
 		{
-			base.ClientJoined(client);
+			base.ClientJoined( client );
 
 			var player = new MomentumPlayer();
 			client.Pawn = player;

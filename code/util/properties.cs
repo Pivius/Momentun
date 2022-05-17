@@ -1,27 +1,25 @@
 using System.Collections.Generic;
-using System;
-using System.Collections.Concurrent;
 using System.Linq;
 
 namespace Sandbox
 {
 
 	public sealed class Property : Dictionary<string, object>
-    {
+	{
 		private readonly Dictionary<string, object> _dictionary = new();
 
-		internal Property() {}
+		internal Property() { }
 
-		internal Property(Dictionary<string, object> dictionary)
+		internal Property( Dictionary<string, object> dictionary )
 		{
-			foreach (var item in dictionary)
+			foreach ( var item in dictionary )
 			{
 				object value = null;
 
-				if (item.Value is not null)
+				if ( item.Value is not null )
 					value = item.Value;
 
-				_dictionary.TryAdd(item.Key, value);
+				_dictionary.TryAdd( item.Key, value );
 			}
 		}
 
@@ -31,19 +29,20 @@ namespace Sandbox
 		{
 			get
 			{
-				if (_dictionary.TryGetValue(key, out object value))
+				if ( _dictionary.TryGetValue( key, out object value ) )
 					return value;
 
 				return null;
 			}
+
 			set => _dictionary[key] = value;
 		}
 
-		public new bool TryAdd(string key, object value)
-		{	
+		public new bool TryAdd( string key, object value )
+		{
 			var item = value;
 
-			if (!_dictionary.TryAdd(key, item))
+			if ( !_dictionary.TryAdd( key, item ) )
 			{
 				_dictionary[key] = item;
 
@@ -55,17 +54,20 @@ namespace Sandbox
 
 		public object[] ToArray() => _dictionary.Values.ToArray();
 
-		public new bool Remove(string key, out object value) => _dictionary.Remove(key, out value);
-
-/*
-		public static void Print(string header, dynamic items)
+		public new bool Remove( string key, out object value )
 		{
-			Console.WriteLine(header);
+			return _dictionary.Remove( key, out value );
+		}
 
-			foreach (KeyValuePair<string, PropItem> item in items.ToArray())
-				Console.WriteLine("  {0}", item.Value());
+		/*
+				public static void Print(string header, dynamic items)
+				{
+					Console.WriteLine(header);
 
-			Console.WriteLine();
-		}*/
+					foreach (KeyValuePair<string, PropItem> item in items.ToArray())
+						Console.WriteLine("  {0}", item.Value());
+
+					Console.WriteLine();
+				}*/
 	}
 }

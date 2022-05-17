@@ -1,14 +1,12 @@
-using System.Linq;
 using Sandbox;
-using System;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace Momentum
 {
 	public partial class MomentumPlayer : Player
 	{
-		ulong Buttons {get; set;}
-		ulong OldButtons {get; set;}
+		ulong Buttons { get; set; }
+		ulong OldButtons { get; set; }
 		public ulong[] ValidMoveButtons =
 		{
 			(ulong)InputButton.Jump,
@@ -25,10 +23,10 @@ namespace Momentum
 		{
 			ulong buttons = 0;
 
-			for (int i = 0; i < ValidMoveButtons.Count(); i++)
+			foreach ( ulong but in ValidMoveButtons )
 			{
-				if (Input.Down((InputButton)ValidMoveButtons[i]))
-					buttons |= ValidMoveButtons[i] << 1;
+				if ( Input.Down( (InputButton)but ) )
+					buttons |= but << 1;
 			}
 
 			//if (Input.MouseWheel != 0)
@@ -38,40 +36,40 @@ namespace Momentum
 			Buttons = buttons;
 		}
 
-		public bool KeyDown(object button)
+		public bool KeyDown( object button )
 		{
 			var buttons = Buttons;
 
-			return (buttons &= ((ulong) button) << 1) != 0;
+			return (buttons &= ((ulong)button) << 1) != 0;
 		}
 
-		public bool KeyPressed(object button)
+		public bool KeyPressed( object button )
 		{
 			var buttons = Buttons;
-			var old_buttons = OldButtons;
+			var oldButtons = OldButtons;
 
-			if ((old_buttons != buttons) && Buttons > OldButtons)
+			if ( (oldButtons != buttons) && (Buttons > OldButtons) )
 			{
-				buttons &= ((ulong) button) << 1;
-				old_buttons &= ((ulong) button) << 1;
+				buttons &= ((ulong)button) << 1;
+				oldButtons &= ((ulong)button) << 1;
 
-				return buttons != old_buttons && buttons != 0;
+				return buttons != oldButtons && buttons != 0;
 			}
 
 			return false;
 		}
 
-		public bool KeyReleased(object button)
+		public bool KeyReleased( object button )
 		{
 			var buttons = Buttons;
-			var old_buttons = OldButtons;
+			var oldButtons = OldButtons;
 
-			if ((old_buttons != buttons) && OldButtons > Buttons)
+			if ( (oldButtons != buttons) && (OldButtons > Buttons) )
 			{
-				buttons &= ((ulong) button) << 1;
-				old_buttons &= ((ulong) button) << 1;
+				buttons &= ((ulong)button) << 1;
+				oldButtons &= ((ulong)button) << 1;
 
-				return buttons != old_buttons && old_buttons != 0;
+				return buttons != oldButtons && oldButtons != 0;
 			}
 
 			return false;

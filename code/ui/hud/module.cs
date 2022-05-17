@@ -1,48 +1,43 @@
-using System.Runtime.Serialization;
 using Sandbox;
 using Sandbox.UI;
-using Sandbox.UI.Construct;
-using System;
 using System.Collections.Generic;
-using System.Text;
-
+using System.Linq;
 
 namespace Momentum
 {
 	public partial class HUDModule : Panel
 	{
-		public Dictionary<string, Elements> Elements = new Dictionary<string, Elements>();
-		public Dictionary<string, Container> Containers = new Dictionary<string, Container>();
-		public Angles PrevViewAngles {get; set;}
-		public Angles DeltaViewAngles {get; set;}
-		public float OffsetAimRate{get; set;} = 45.0f;
-		public float OffsetResetRate{get; set;} = 65f;
+		public Dictionary<string, Elements> Elements = new();
+		public Dictionary<string, Container> Containers = new();
+		public Angles PrevViewAngles { get; set; }
+		public Angles DeltaViewAngles { get; set; }
+		public float OffsetAimRate { get; set; } = 45.0f;
+		public float OffsetResetRate { get; set; } = 65f;
 
 		public HUDModule()
 		{
-
 			StyleSheet.Load( "/ui/hud/module.scss" );
 			InitContainers();
-			GetContainer("BottomLeft").NewElement<Velocity>("Velocity");
+			GetContainer( "BottomLeft" ).NewElement<Velocity>( "Velocity" );
 		}
 
-		public void NewElement<T>(string identifier = null) where T : Elements, new()
+		public void NewElement<T>( string identifier = null ) where T : Elements, new()
 		{
-			if (identifier == null)
-				identifier = typeof(T).ToString().Split(".")[1];
+			if ( identifier == null )
+				identifier = typeof( T ).ToString().Split( "." )[1];
 
-			if (!Elements.ContainsKey(identifier))
+			if ( !Elements.ContainsKey( identifier ) )
 			{
 				var child = AddChild<T>();
-				Elements.Add(identifier, child);
+				Elements.Add( identifier, child );
 			}
 		}
 
-		public Elements GetElement(string type)
+		public Elements GetElement( string type )
 		{
 			Elements child = null;
 
-			if (Elements.ContainsKey(type))
+			if ( Elements.ContainsKey( type ) )
 				child = Elements[type];
 
 			return child;
@@ -51,23 +46,30 @@ namespace Momentum
 		public void DoOffset()
 		{
 			var player = Local.Pawn;
-			var rotation_delta = player.EyeRotation.Angles() - PrevViewAngles;
+			var rotationDelta = player.EyeRotation.Angles() - PrevViewAngles;
 
-			DeltaViewAngles = DeltaViewAngles.WithYaw(InterpFunctions.Linear(DeltaViewAngles.yaw, MathX.Clamp((rotation_delta.yaw * OffsetAimRate) - DeltaViewAngles.yaw, -90, 90) , Time.Delta * OffsetResetRate, 25f));
-			DeltaViewAngles = DeltaViewAngles.WithPitch(InterpFunctions.Linear(DeltaViewAngles.pitch, MathX.Clamp((rotation_delta.pitch * OffsetAimRate) - DeltaViewAngles.pitch, -90, 90), Time.Delta * OffsetResetRate, 25f));
+			DeltaViewAngles = DeltaViewAngles.WithYaw( InterpFunctions.Linear( DeltaViewAngles.yaw,
+				MathX.Clamp( (rotationDelta.yaw * OffsetAimRate) - DeltaViewAngles.yaw, -90, 90 ),
+				Time.Delta * OffsetResetRate,
+				25f ) );
+			DeltaViewAngles = DeltaViewAngles.WithPitch( InterpFunctions.Linear( DeltaViewAngles.pitch,
+				MathX.Clamp( (rotationDelta.pitch * OffsetAimRate) - DeltaViewAngles.pitch, -90, 90 ),
+				Time.Delta * OffsetResetRate,
+				25f ) );
 
-			if (Angles.AngleVector(DeltaViewAngles).IsNaN)
+			if ( Angles.AngleVector( DeltaViewAngles ).IsNaN )
 				DeltaViewAngles = new Angles();
 
 			PrevViewAngles = player.EyeRotation.Angles();
 		}
-		
-		public void SetStyle(params string[] props)
+
+		public void SetStyle( params string[] props )
 		{
-			foreach (string item in props)
+			foreach ( var elementProp in from string item in props
+										  let elementProp = item.Split( ":" )
+										  select elementProp )
 			{
-				var element_prop = item.Split(":");
-				Style.Set(element_prop[0], element_prop[1].Trim());
+				Style.Set( elementProp[0], elementProp[1].Trim() );
 			}
 		}
 
@@ -78,11 +80,10 @@ namespace Momentum
 
 			DoOffset();
 			ContainerTick();
-			transform.AddTranslateX(DeltaViewAngles.yaw);
-			transform.AddTranslateY(-DeltaViewAngles.pitch);
+			transform.AddTranslateX( DeltaViewAngles.yaw );
+			transform.AddTranslateY( -DeltaViewAngles.pitch );
 			Style.Transform = transform;
 			Style.Dirty();
 		}
 	}
-
 }

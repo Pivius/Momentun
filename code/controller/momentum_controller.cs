@@ -1,6 +1,3 @@
-using Sandbox;
-using System;
-
 namespace Momentum
 {
 	public class MomentumController : BaseController
@@ -13,7 +10,14 @@ namespace Momentum
 		public override void AirMove()
 		{
 			var velocity = Velocity;
-			AirAccelerate.Move(ref velocity, WishVelocity, (float)MoveProp["MaxSpeed"], (float)MoveProp["SideStrafeMaxSpeed"], (float)MoveProp["AirAccelerate"], (float)MoveProp["StrafeAcceleration"], (float)MoveProp["AirStopAcceleration"], (float)MoveProp["AirControl"]);
+			AirAccelerate.Move( ref velocity,
+					  WishVelocity,
+					  (float)MoveProp["MaxSpeed"],
+					  (float)MoveProp["SideStrafeMaxSpeed"],
+					  (float)MoveProp["AirAccelerate"],
+					  (float)MoveProp["StrafeAcceleration"],
+					  (float)MoveProp["AirStopAcceleration"],
+					  (float)MoveProp["AirControl"] );
 			Velocity = velocity;
 			Velocity += BaseVelocity;
 			TryPlayerMove();
@@ -22,12 +26,12 @@ namespace Momentum
 
 		public override void Simulate()
 		{
-			if (StartMove()) 
+			if ( StartMove() )
 				return;
 
-			if (SetupMove()) 
+			if ( SetupMove() )
 				return;
-			
+
 			EndMove();
 		}
 

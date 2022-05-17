@@ -1,8 +1,6 @@
 using Sandbox;
 using Sandbox.UI;
 using Sandbox.UI.Construct;
-using System;
-using System.Collections.Generic;
 
 
 namespace Momentum
@@ -11,7 +9,7 @@ namespace Momentum
 	{
 		public Velocity()
 		{
-			SetStyleSheet("/ui/hud/elements/velocity.scss");
+			SetStyleSheet( "/ui/hud/elements/velocity.scss" );
 			Label = Add.Label( "100", "label" );
 		}
 
@@ -21,7 +19,8 @@ namespace Momentum
 		{
 			var player = Local.Pawn;
 			if ( player == null ) return;
-			Label.Text = $"{player.Velocity.WithZ(0).Length:n0}";
+
+			Label.Text = $"{player.Velocity.WithZ( 0 ).Length:n0}";
 			//Sandbox.BetterLog.Info(Label.DataBind);
 		}
 	}

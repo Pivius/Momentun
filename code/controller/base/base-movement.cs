@@ -1,7 +1,6 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System;
 using Sandbox;
+using System.Diagnostics;
+using Trace = Sandbox.Trace;
 
 namespace Momentum
 {
@@ -17,25 +16,30 @@ namespace Momentum
 
 		public float GetWalkSpeed()
 		{
-			float walk_speed = (Input.Down( InputButton.Walk) && (bool)MoveProp["CanWalk"]) ? (float)MoveProp["WalkSpeed"] : ((Input.Down( InputButton.Run) && (bool)MoveProp["CanRun"]) ? (float)MoveProp["RunSpeed"] : (float)MoveProp["DefaultSpeed"]);
-			//return walk_speed;
-			return Duck.IsDucked ? walk_speed * ((float)MoveProp["DuckedWalkSpeed"]/(float)MoveProp["DefaultSpeed"]) : walk_speed;
+			float defaultSpeed = (float)MoveProp["DefaultSpeed"];
+			bool isWalking = Input.Down( InputButton.Walk ) && (bool)MoveProp["CanWalk"];
+			bool isRunning = Input.Down( InputButton.Run ) && (bool)MoveProp["CanRun"];
+			float walkSpeed = isWalking ? (float)MoveProp["WalkSpeed"] : 
+							(isRunning ? (float)MoveProp["RunSpeed"] :
+							defaultSpeed);
+
+			return Duck.ShouldDuck.Value ? walkSpeed * ((float)MoveProp["DuckedWalkSpeed"] / defaultSpeed) : walkSpeed;
 		}
 
-		public Vector3 WishVel(float strafe_speed)
-		{	
+		public static Vector3 WishVel( float strafeSpeed )
+		{
 			Vector3 forward = Input.Rotation.Forward;
-			float forward_speed = Input.Forward * strafe_speed;
-			float side_speed = Input.Left * strafe_speed;
-			Vector3 forward_wish = new Vector3(forward.x, forward.y, 0).Normal * forward_speed;
-			Vector3 side_wish = new Vector3(-forward.y, forward.x, 0).Normal * side_speed;
+			float forwardSpeed = Input.Forward * strafeSpeed;
+			float sideSpeed = Input.Left * strafeSpeed;
+			Vector3 forwardWish = new Vector3( forward.x, forward.y, 0 ).Normal * forwardSpeed;
+			Vector3 sideWish = new Vector3( -forward.y, forward.x, 0 ).Normal * sideSpeed;
 
-			return forward_wish + side_wish;
+			return forwardWish + sideWish;
 		}
 
-		public Vector3 ClipVelocity(Vector3 velocity, Vector3 normal)
-		{	
-			return velocity - (normal * velocity.Dot(normal));
+		public static Vector3 ClipVelocity( Vector3 velocity, Vector3 normal )
+		{
+			return velocity - (normal * velocity.Dot( normal ));
 		}
 
 		/// <summary>
@@ -43,19 +47,24 @@ namespace Momentum
 		/// </summary>
 		public virtual void AddSlopeSpeed()
 		{
-			TraceResult trace = TraceUtil.PlayerBBox(Position, Position.WithZ(Position.z - 2), this);
+			TraceResult trace = TraceUtil.PlayerBBox( Position,
+											Position.WithZ( Position.z - 2 ),
+											this );
 			Vector3 normal = trace.Normal;
 
-			if (normal.z < 1 && Velocity.z <= 0 && OnGround() && (STATE)MoveProp["MoveState"] == STATE.INAIR)
+			if ( normal.z < 1
+				&& Velocity.z <= 0
+				&& OnGround()
+				&& (STATE)MoveProp["MoveState"] == STATE.INAIR )
 			{
-				Velocity -= (normal * Velocity.Dot(normal));
+				Velocity -= normal * Velocity.Dot( normal );
 
-				if (Velocity.Dot(normal) < 0)
-					Velocity = ClipVelocity(Velocity, normal);
+				if ( Velocity.Dot( normal ) < 0 )
+					Velocity = ClipVelocity( Velocity, normal );
 			}
 		}
 
-		public override void CategorizePosition(bool bStayOnGround)
+		public override void CategorizePosition( bool bStayOnGround )
 		{
 			SurfaceFriction = 1.0f;
 
@@ -67,7 +76,7 @@ namespace Momentum
 			//
 			float MaxNonJumpVelocity = 140.0f;
 			bool bMovingUpRapidly = Velocity.z > MaxNonJumpVelocity;
-			bool bMovingUp = Velocity.z > 0;
+			_ = Velocity.z > 0;
 
 			bool bMoveToEndPos = false;
 
@@ -90,7 +99,8 @@ namespace Momentum
 
 			var pm = TraceBBox( vBumpOrigin, point, 4.0f );
 
-			if ( pm.Entity == null || Vector3.GetAngle( Vector3.Up, pm.Normal ) > (float)MoveProp["StandableAngle"] )
+			if ( pm.Entity == null || Vector3.GetAngle( Vector3.Up,
+											  pm.Normal ) > (float)MoveProp["StandableAngle"] )
 			{
 				ClearGroundEntity();
 				bMoveToEndPos = false;
@@ -114,14 +124,26 @@ namespace Momentum
 		}
 		public override void StepMove()
 		{
-			MoveHelper mover = new MoveHelper(Position, Velocity);
-			mover.Trace = mover.Trace.Size(OBBMins, OBBMaxs).Ignore(Pawn);
+			MoveHelper mover = new( Position, Velocity );
+			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
-			mover.TryMoveWithStep(Time.Delta, (float)MoveProp["StepSize"]);
+			mover.TryMoveWithStep( Time.Delta, (float)MoveProp["StepSize"] );
 
 			Position = mover.Position;
 			Velocity = mover.Velocity;
+		}
+
+		public virtual void TryPlayerClip( in Vector3 primalVelocity )
+		{
+			if ( ShouldClip.Value )
+			{
+				Velocity = primalVelocity;
+			}
+			else
+			{
+				ShouldClip.Value = false;
+			}
 		}
 
 		/// <summary>
@@ -129,31 +151,27 @@ namespace Momentum
 		/// </summary>
 		public virtual void TryPlayerMove()
 		{
-			var primal_velocity = Velocity;
+			var primalVelocity = Velocity;
 
-			MoveHelper mover = new MoveHelper(Position, Velocity);
-			mover.Trace = mover.Trace.Size(OBBMins, OBBMaxs).Ignore(Pawn);
+			MoveHelper mover = new( Position, Velocity );
+			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
-			mover.TryMove(Time.Delta);
+			mover.TryMove( Time.Delta );
 
 			Position = mover.Position;
 			Velocity = mover.Velocity;
-
-			if ( ShouldClip.Value)
-			{
-				Velocity = primal_velocity;
-			}
-			else
-			{
-				ShouldClip.Set( false );
-			}
+			TryPlayerClip( in primalVelocity );
 		}
 
 		public override void AirMove()
 		{
 			var velocity = Velocity;
-			AirAccelerate.Move(ref velocity, WishVelocity, (float)MoveProp["MaxSpeed"], (float)MoveProp["AirAccelerate"]);
+
+			AirAccelerate.Move( ref velocity,
+					  WishVelocity,
+					  (float)MoveProp["MaxSpeed"],
+					  (float)MoveProp["AirAccelerate"] );
 			Velocity = velocity;
 			Velocity += BaseVelocity;
 			TryPlayerMove();
@@ -166,16 +184,16 @@ namespace Momentum
 			var end = Position + Vector3.Down * (float)MoveProp["StepSize"];
 
 			// See how far up we can go without getting stuck
-			var trace = TraceBBox(Position, start);
+			var trace = TraceBBox( Position, start );
 			start = trace.EndPosition;
 
 			// Now trace down from a known safe position
-			trace = TraceBBox(start, end);
+			trace = TraceBBox( start, end );
 
-			if (trace.Fraction <= 0) return;
-			if (trace.Fraction >= 1) return;
-			if (trace.StartedSolid) return;
-			if (Vector3.GetAngle(Vector3.Up, trace.Normal) > (float)MoveProp["StandableAngle"]) return;
+			if ( trace.Fraction <= 0 ) return;
+			if ( trace.Fraction >= 1 ) return;
+			if ( trace.StartedSolid ) return;
+			if ( Vector3.GetAngle( Vector3.Up, trace.Normal ) > (float)MoveProp["StandableAngle"] ) return;
 
 			// This is incredibly hacky. The real problem is that trace returning that strange value we can't network over.
 			// float flDelta = fabs(mv->GetAbsOrigin().z - trace.m_vEndPos.z);
@@ -186,34 +204,38 @@ namespace Momentum
 
 		public override void WalkMove()
 		{
-			var wishdir = WishVelocity.Normal;
-			var wishspeed = WishVelocity.Length;
+			var wishDir = WishVelocity.Normal;
+			var wishSpeed = WishVelocity.Length;
+			Vector3 velocity;
 
-			WishVelocity = WishVelocity.WithZ(0);
-			WishVelocity = WishVelocity.Normal * wishspeed;
-			Velocity = Velocity.WithZ(0);
-			var velocity = Velocity;
-			Accelerate.Move(ref velocity, WishVelocity, GetWalkSpeed(), (float)MoveProp["Accelerate"]);
+			WishVelocity = WishVelocity.WithZ( 0 );
+			WishVelocity = WishVelocity.Normal * wishSpeed;
+			Velocity = Velocity.WithZ( 0 );
+			velocity = Velocity;
+			Accelerate.Move( ref velocity,
+				   WishVelocity,
+				   GetWalkSpeed(),
+				   (float)MoveProp["Accelerate"] );
 			Velocity = velocity;
-			Velocity = Velocity.WithZ(0);
+			Velocity = Velocity.WithZ( 0 );
 
 			// Add in any base velocity to the current velocity.
 			Velocity += BaseVelocity;
 
 			try
 			{
-				if (Velocity.Length < 1.0f)
+				if ( Velocity.Length < 1.0f )
 				{
 					Velocity = Vector3.Zero;
 					return;
 				}
 
 				// first try just moving to the destination	
-				var dest = (Position + Velocity * Time.Delta).WithZ(Position.z);
+				var dest = (Position + Velocity * Time.Delta).WithZ( Position.z );
 
-				var pm = TraceUtil.PlayerBBox(Position, dest, this);
+				var pm = TraceUtil.PlayerBBox( Position, dest, this );
 
-				if (pm.Fraction == 1)
+				if ( pm.Fraction == 1 )
 				{
 					Position = pm.EndPosition;
 					StayOnGround();
@@ -230,43 +252,43 @@ namespace Momentum
 
 			StayOnGround();
 		}
-	
-		public override void CheckJumpButton()
-			{
 
-			if (Water.JumpTime > 0.0f)
+		public override void CheckJumpButton()
+		{
+
+			if ( Water.JumpTime > 0.0f )
 			{
 				Water.JumpTime -= Time.Delta;
 
-				if (Water.JumpTime < 0.0f)
+				if ( Water.JumpTime < 0.0f )
 					Water.JumpTime = 0;
 
 				return;
 			}
-			
-			if (Water.WaterLevel >= WATERLEVEL.Waist)
+
+			if ( Water.WaterLevel >= WATERLEVEL.Waist )
 			{
 				ClearGroundEntity();
-				Velocity = Velocity.WithZ(100);
+				Velocity = Velocity.WithZ( 100 );
 				return;
 			}
-			
-			if (!OnGround())
+
+			if ( !OnGround() )
 				return;
 
 			ClearGroundEntity();
-			Velocity = Gravity.AddGravity((float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ((float)MoveProp["JumpPower"]));
-			AddEvent("jump");
+			Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ( (float)MoveProp["JumpPower"] ) );
+			AddEvent( "jump" );
 
-			ShouldClip.Set( true );
+			ShouldClip.Value = true;
 			ClipTime = 0;
-			Duck.JumpTime = Duck.JUMP_TIME;
+			Duck.JumpTime = Duck.JumpingTime;
 			Duck.InDuckJump = true;
 		}
 
 		public override void CheckLadder()
 		{
-			if (IsTouchingLadder && Input.Pressed( InputButton.Jump))
+			if ( IsTouchingLadder && Input.Pressed( InputButton.Jump ) )
 			{
 				Velocity = LadderNormal * 100.0f;
 				IsTouchingLadder = false;
@@ -275,18 +297,20 @@ namespace Momentum
 
 			const float ladderDistance = 1.0f;
 			var start = Position;
-			Vector3 end = start + (IsTouchingLadder ? (LadderNormal * -1.0f) : WishVelocity.Normal) * ladderDistance;
+			Vector3 end = start
+				+ (IsTouchingLadder ? (LadderNormal * -1.0f) : WishVelocity.Normal)
+				* ladderDistance;
 
-			var pm = Trace.Ray(start, end)
-						.Size(OBBMins, OBBMaxs)
-						.HitLayer(CollisionLayer.All, false)
-						.HitLayer(CollisionLayer.LADDER, true)
-						.Ignore(Pawn)
+			var pm = Trace.Ray( start, end )
+						.Size( OBBMins, OBBMaxs )
+						.HitLayer( CollisionLayer.All, false )
+						.HitLayer( CollisionLayer.LADDER, true )
+						.Ignore( Pawn )
 						.Run();
 
 			IsTouchingLadder = false;
 
-			if (pm.Hit)
+			if ( pm.Hit )
 			{
 				IsTouchingLadder = true;
 				LadderNormal = pm.Normal;
@@ -306,12 +330,12 @@ namespace Momentum
 			//Log.Info( GetViewOffset() );
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
 			EyeRotation = Input.Rotation;
-			WishVelocity = WishVel((float)MoveProp["MaxMove"]);
+			WishVelocity = WishVel( (float)MoveProp["MaxMove"] );
 			UpdateBBox();
-			
-			if (Unstuck.TestAndFix())
+
+			if ( Unstuck.TestAndFix() )
 				return true;
-			
+
 			// RunLadderMode
 			CheckLadder();
 
@@ -326,74 +350,73 @@ namespace Momentum
 		/// </returns>
 		public virtual bool SetupMove()
 		{
-			var player = GetPlayer();
 			Duck.ReduceTimers();
-			Swimming = Water.CheckWater(Position, OBBMins, OBBMaxs, GetViewOffset(), Pawn);
+			Swimming = Water.CheckWater( Position, OBBMins, OBBMaxs, GetViewOffset(), Pawn );
 
 			//
 			// Start Gravity
 			//
-			if (!Swimming && !IsTouchingLadder)
+			if ( !Swimming && !IsTouchingLadder )
 			{
-				Velocity = Gravity.AddGravity((float)MoveProp["Gravity"] * 0.5f, Velocity);
-				Velocity += new Vector3(0, 0, BaseVelocity.z) * Time.Delta;
-				BaseVelocity = BaseVelocity.WithZ(0);
+				Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity );
+				Velocity += new Vector3( 0, 0, BaseVelocity.z ) * Time.Delta;
+				BaseVelocity = BaseVelocity.WithZ( 0 );
 			}
 
-			if (Water.JumpTime > 0.0f)
+			if ( Water.JumpTime > 0.0f )
 			{
-				Velocity = Water.WaterJump(Velocity);
+				Velocity = Water.WaterJump( Velocity );
 				TryPlayerMove();
 				return true;
 			}
 
-			if (Water.WaterLevel >= WATERLEVEL.Waist)
+			if ( Water.WaterLevel >= WATERLEVEL.Waist )
 			{
-				if (Water.WaterLevel == WATERLEVEL.Waist)
-					Velocity = Water.CheckWaterJump(Velocity, Position, this);
+				if ( Water.WaterLevel == WATERLEVEL.Waist )
+					Velocity = Water.CheckWaterJump( Velocity, Position, this );
 
-				if (Velocity.z < 0.0f && Water.JumpTime > 0.0f)
+				if ( Velocity.z < 0.0f && Water.JumpTime > 0.0f )
 					Water.JumpTime = 0.0f;
 
-				if ((bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump) : Input.Pressed( InputButton.Jump))
+				if ( (bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
-	
-				Water.Move(this);
-				CategorizePosition(OnGround());
 
-				if (OnGround())
-					Velocity = Velocity.WithZ(0);
+				Water.Move( this );
+				CategorizePosition( OnGround() );
+
+				if ( OnGround() )
+					Velocity = Velocity.WithZ( 0 );
 
 				MoveProp["MoveState"] = STATE.WATER;
 			}
 			else
 			{
-		
-				if ((bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump) : Input.Pressed( InputButton.Jump))
+
+				if ( (bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
 
-				if (OnGround())
+				if ( OnGround() )
 				{
-					Velocity = Velocity.WithZ(0);
+					Velocity = Velocity.WithZ( 0 );
 					var velocity = Velocity;
-					Friction.Move(ref velocity, (float)MoveProp["Friction"], (float)MoveProp["StopSpeed"]);
+					Friction.Move( ref velocity, (float)MoveProp["Friction"], (float)MoveProp["StopSpeed"] );
 					Velocity = velocity;
 				}
 
 				Duck.UpdateDuckJumpEyeOffset();
 				Duck.Move();
 
-				if (!IsTouchingLadder)
-					WishVelocity = WishVelocity.WithZ(0);
+				if ( !IsTouchingLadder )
+					WishVelocity = WishVelocity.WithZ( 0 );
 
 				bool bStayOnGround = false;
-				
-				if (IsTouchingLadder)
+
+				if ( IsTouchingLadder )
 				{
 					LadderMove();
 					MoveProp["MoveState"] = STATE.LADDER;
 				}
-				else if (OnGround())
+				else if ( OnGround() )
 				{
 					bStayOnGround = true;
 					WalkMove();
@@ -406,16 +429,16 @@ namespace Momentum
 				}
 
 				// FinishGravity
-				if (!IsTouchingLadder)
-					Velocity = Gravity.AddGravity((float)MoveProp["Gravity"] * 0.5f, Velocity);
+				if ( !IsTouchingLadder )
+					Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity );
 
-				if (OnGround())
+				if ( OnGround() )
 				{
 					AddSlopeSpeed();
-					Velocity = Velocity.WithZ(0);
+					Velocity = Velocity.WithZ( 0 );
 				}
 
-				CategorizePosition(bStayOnGround);
+				CategorizePosition( bStayOnGround );
 			}
 			return false;
 		}

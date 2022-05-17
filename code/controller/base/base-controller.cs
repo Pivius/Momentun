@@ -14,8 +14,8 @@ namespace Momentum
 		public Vector3 OBBMins{get; set;} = new Vector3(-16, -16, 0);
 		public Vector3 OBBMaxs{get; set;} = new Vector3(16, 16, 72);
 		public Vector3 OldVelocity{get; set;}
-		public TimeAssociatedMap<bool> ShouldClip;
-		public TimeSince ClipTime;
+		public TimeAssociatedMap<bool> ShouldClip { get; set; }
+		public TimeSince ClipTime { get; set; }
 
 		public BaseController()
 		{
@@ -25,66 +25,59 @@ namespace Momentum
 			Gravity = new Gravity();
 			Friction = new Friction();
 			Water = new Water();
-			Unstuck = new Sandbox.Unstuck(this);
+			Unstuck = new Unstuck(this);
 			ShouldClip = new TimeAssociatedMap<bool>( 1f, GetShouldClip );
-		}
-
-		public bool GetShouldClip()
-		{
-			if (GetPlayer().IsServer)
-			{
-				return ClipTime <= (float)MoveProp["ClipTime"];
-			}
-			else
-			{
-				return ShouldClip.LastValue && (ClipTime <= (float)MoveProp["ClipTime"]);
-			}
 		}
 
 		public virtual MomentumPlayer GetPlayer() => (MomentumPlayer)Pawn;
 		public Property MoveProp => GetPlayer().MovementProps;
 		public Property ViewProp => GetPlayer().ViewProps;
 
-		public override TraceResult TraceBBox(Vector3 start, Vector3 end, float liftFeet = 0.0f)
+		public override TraceResult TraceBBox( Vector3 start,
+										Vector3 end,
+										float liftFeet = 0.0f )
 		{
-			return TraceBBox(start, end, OBBMins, OBBMaxs, liftFeet);
+			return TraceBBox( start, end, OBBMins, OBBMaxs, liftFeet );
 		}
 
 		public override BBox GetHull()
 		{
-			return new BBox(OBBMins, OBBMaxs);
+			return new BBox( OBBMins, OBBMaxs );
 		}
 
-		public virtual Vector3 GetPlayerMins(bool is_ducked)
+		public virtual Vector3 GetPlayerMins( bool isDucked )
 		{
-			return is_ducked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
+			return isDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : 
+							((Vector3)ViewProp["StandMins"] * Pawn.Scale);
 		}
 
-		public virtual Vector3 GetPlayerMaxs(bool is_ducked)
+		public virtual Vector3 GetPlayerMaxs( bool isDucked )
 		{
-			return is_ducked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
+			return isDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : 
+							((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMins()
 		{
-			//return ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
-			return Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : ((Vector3)ViewProp["StandMins"] * Pawn.Scale);
+			return Duck.ShouldDuck.Value ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : 
+										((Vector3)ViewProp["StandMins"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs()
 		{
-			//return ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
-			return Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : ((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
+			return Duck.ShouldDuck.Value ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : 
+										((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
 		}
 
-		public virtual float GetPlayerViewOffset(bool is_ducked)
+		public virtual float GetPlayerViewOffset( bool isDucked )
 		{
-			return is_ducked ? ((float)ViewProp["DuckViewOffset"] * Pawn.Scale) : ((float)ViewProp["StandViewOffset"] * Pawn.Scale);
+			return isDucked ? ((float)ViewProp["DuckViewOffset"] * Pawn.Scale) : 
+							((float)ViewProp["StandViewOffset"] * Pawn.Scale);
 		}
 
 		public virtual float GetViewOffset()
 		{
-			return (ViewOffset * Pawn.Scale);
+			return ViewOffset * Pawn.Scale;
 		}
 
 		public override void SetBBox(Vector3 mins, Vector3 maxs)
@@ -104,26 +97,28 @@ namespace Momentum
 			}
 		}
 
-		public bool OnGround()
+		public bool GetShouldClip()
 		{
-			return GroundEntity != null;
+			if ( GetPlayer().IsServer )
+				return ClipTime <= (float)MoveProp["ClipTime"];
+			else
+				return ShouldClip.LastValue && (ClipTime <= (float)MoveProp["ClipTime"]);
 		}
+
+		public bool OnGround() => GroundEntity != null;
 
 		public float FallDamage()
 		{
-			return MathF.Max(Velocity.z - 580.0f, 0) * (float)MoveProp["FallDamageMultiplier"];
+			return MathF.Max( Velocity.z - 580.0f, 0 )
+				* (float)MoveProp["FallDamageMultiplier"];
 		}
 
 		public override void FrameSimulate()
 		{
-			Duck.ReduceTimers();
-			//Duck.UpdateDuckJumpEyeOffset();
-			//Duck.Move();
 			base.FrameSimulate();
 
-			//EyeRotation = Input.Rotation;
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
-			WishVelocity = WishVel((float)MoveProp["MaxMove"]);
+			WishVelocity = WishVel( (float)MoveProp["MaxMove"]);
 		}
 
 		public override void Simulate()

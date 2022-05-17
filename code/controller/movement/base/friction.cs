@@ -1,33 +1,33 @@
-using System;
-using System.Threading;
-using System.Numerics;
 using Sandbox;
+using System;
 
 namespace Momentum
 {
 	public partial class Friction : Accelerate
 	{
 		// # Source Movement Friction
-		
-		public virtual Vector3 ApplyFriction(Vector3 velocity, float friction, float stop_speed)
+
+		public virtual Vector3 ApplyFriction( Vector3 velocity,
+									   float friction,
+									   float stopSpeed )
 		{
 			float speed = velocity.Length;
-			float control = MathF.Max(speed, stop_speed);
+			float control = MathF.Max( speed, stopSpeed );
 			float drop = control * friction * Time.Delta;
-			float new_speed = MathF.Max(speed - drop, 0);
+			float newSpeed = MathF.Max( speed - drop, 0 );
 
-			if (new_speed != speed)
+			if ( newSpeed != speed )
 			{
-				new_speed /= speed;
-				velocity *= new_speed;
+				newSpeed /= speed;
+				velocity *= newSpeed;
 			}
 
 			return velocity;
 		}
 
-		public virtual void Move(ref Vector3 velocity, float friction, float stop_speed)
+		public virtual void Move( ref Vector3 velocity, float friction, float stopSpeed )
 		{
-			velocity = ApplyFriction(velocity, friction, stop_speed);
+			velocity = ApplyFriction( velocity, friction, stopSpeed );
 		}
 	}
 }

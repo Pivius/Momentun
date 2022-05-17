@@ -1,11 +1,10 @@
 using Sandbox;
-using System;
 using System.Collections.Generic;
 
 namespace Momentum
 {
-    public partial class MomentumPlayer : Player
-    {
+	public partial class MomentumPlayer : Player
+	{
 		public Property MovementProps = new(
 			new Dictionary<string, object>
 			{
@@ -28,7 +27,7 @@ namespace Momentum
 				["ClipTime"] = 0.5f,
 				["AutoJump"] = true,
 				["AllowAutoMovement"] = true,
-				["MoveState"] = (STATE) 0,
+				["MoveState"] = (STATE)0,
 				["DoubleJumpZ"] = 100f,
 				["RampJump"] = 2,
 
@@ -64,11 +63,11 @@ namespace Momentum
 
 				// # Player Hulls
 
-				["StandMins"] = new Vector3(-16, -16, 0),
-				["StandMaxs"] = new Vector3(16, 16, 72),
-				["DuckMins"] = new Vector3(-16, -16, 0),
-				["DuckMaxs"] = new Vector3(16, 16, 32),
+				["StandMins"] = new Vector3( -16, -16, 0 ),
+				["StandMaxs"] = new Vector3( 16, 16, 72 ),
+				["DuckMins"] = new Vector3( -16, -16, 0 ),
+				["DuckMaxs"] = new Vector3( 16, 16, 32 ),
 			}
 		);
-    }
+	}
 }

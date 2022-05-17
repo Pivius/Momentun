@@ -1,16 +1,14 @@
-using System.Threading;
-using System.Numerics;
 using Sandbox;
 
 namespace Momentum
 {
-	public class Gravity 
+	public class Gravity
 	{
 		// Source Gravity
-		
-		public Vector3 AddGravity(float gravity, Vector3 velocity)
+
+		public static Vector3 AddGravity( float gravity, Vector3 velocity )
 		{
-			return velocity - new Vector3(0, 0, gravity * Time.Delta);
+			return velocity - new Vector3( 0, 0, gravity * Time.Delta );
 		}
 	}
 }

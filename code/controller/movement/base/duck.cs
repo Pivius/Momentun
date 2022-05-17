@@ -11,33 +11,47 @@ namespace Momentum
 		public bool IsDucked { get; set; }
 		public bool IsDucking { get; set; }
 		public bool InDuckJump { get; set; }
-		public float DuckTime { get; set; }
-		public float DuckJumpTime { get; set; }
+		public float DuckTimer { get; set; }
+		public float DuckJumpTimer { get; set; }
 		public float JumpTime { get; set; }
-		public float DUCK_TIME { get; set; } = 1000.0f;
-		public float JUMP_TIME { get; set; } = 600.0f;
-		public float TIME_TO_UNDUCK { get; set; } = 0.2f;
-		public float TIME_TO_DUCK { get; set; } = 0.4f;
-		public float TIME_TO_UNDUCK_INV { get; set; } = 1000.0f - 200.0f;
+		public const float DuckingTime = 1000.0f;
+		public const float JumpingTime = 600.0f;
+		public const float TimeToUnDuck = 0.2f;
+		public const float TimeToDuck = 0.4f;
+		public const float TimeToUnduckInv = 1000.0f - 200.0f;
+		public TimeAssociatedMap<bool> ShouldDuck { get; set; }
 
 		public Duck( BaseController controller )
 		{
 			Controller = controller;
+			ShouldDuck = new TimeAssociatedMap<bool>( 1f, GetShouldDuck );
 		}
 
+		public bool GetShouldDuck()
+		{
+			if ( Controller.GetPlayer().IsServer )
+			{
+				return IsDucked;
+			}
+			else
+			{
+				return ShouldDuck.LastValue && (IsDucked);
+			}
+
+		}
 		private static float SimpleSpline( float value )
 		{
-			float value_squared = value * value;
+			float valueSquared = value * value;
 
-			return (3 * value_squared - 2 * value_squared * value);
+			return 3 * valueSquared - 2 * valueSquared * value;
 		}
 
 		public virtual Vector3 GetUnDuckOrigin( bool negate )
 		{
-			Vector3 new_origin = Controller.Position;
+			Vector3 newPosition = Controller.Position;
 
 			if ( Controller.OnGround() )
-				new_origin += (Controller.GetPlayerMins( true ) - Controller.GetPlayerMins( false ));
+				newPosition += Controller.GetPlayerMins( true ) - Controller.GetPlayerMins( false );
 			else
 			{
 				Vector3 hull_normal = Controller.GetPlayerMaxs( false ) - Controller.GetPlayerMins( false );
@@ -47,50 +61,56 @@ namespace Momentum
 				if ( negate )
 					view_delta *= -1;
 
-				new_origin += view_delta;
+				newPosition += view_delta;
 			}
 
-			return new_origin;
+			return newPosition;
 		}
 
-		public void FixPlayerCrouchStuck(bool upward)
+		public void FixPlayerCrouchStuck( bool upward )
 		{
 			int i;
-			Vector3 cached_pos;
+			Vector3 newPosition;
 			TraceResult trace;
 			int direction = upward ? 1 : 0;
 
-			trace = TraceUtil.PlayerBBox(Controller.Position, Controller.Position, Controller);
+			trace = TraceUtil.PlayerBBox( Controller.Position,
+								Controller.Position,
+								Controller );
 
-			if ( !trace.StartedSolid )
-				return;
-
-			cached_pos = Controller.Position;
-
-			for ( i = 0; i < 36; i++ )
+			if ( trace.StartedSolid )
 			{
-				Vector3 org = Controller.Position;
+				newPosition = Controller.Position;
 
-				org = org.WithZ( org.z + direction );
-				Controller.Position = org;
-				trace = TraceUtil.PlayerBBox( Controller.Position, Controller.Position, Controller );
+				for ( i = 0; i < 36; i++ )
+				{
+					Vector3 pos = Controller.Position;
 
-				if ( !trace.StartedSolid )
-					return;
+					pos = pos.WithZ( pos.z + direction );
+					Controller.Position = pos;
+					trace = TraceUtil.PlayerBBox( Controller.Position,
+								  Controller.Position,
+								  Controller );
+
+					if ( !trace.StartedSolid )
+						return;
+				}
+
+				Controller.Position = newPosition;
 			}
-
-			Controller.Position = cached_pos;
 		}
 
 		public bool CanUnDuck()
 		{
-			Vector3 new_origin = GetUnDuckOrigin( true );
+			Vector3 newPosition = GetUnDuckOrigin( true );
 			TraceResult trace;
-			bool saved_duck = IsDucked;
+			bool savedDuck = ShouldDuck.Value;
 
 			IsDucked = false;
-			trace = TraceUtil.PlayerBBox( Controller.Position, new_origin, Controller );
-			IsDucked = saved_duck;
+			ShouldDuck.Value = false;
+			trace = TraceUtil.PlayerBBox( Controller.Position, newPosition, Controller );
+			IsDucked = savedDuck;
+			ShouldDuck.Value = savedDuck;
 
 			if ( trace.StartedSolid || trace.Fraction != 1.0f )
 				return false;
@@ -100,85 +120,88 @@ namespace Momentum
 
 		public void FinishUnDuck()
 		{
-			Vector3 new_origin = GetUnDuckOrigin( true );
+			Vector3 newPosition = GetUnDuckOrigin( true );
 
 			IsDucked = false;
+			ShouldDuck.Value = false;
 			IsDucking = false;
 			Controller.GetPlayer().RemoveFlag( PlayerFlags.DUCKING );
 			InDuckJump = false;
 			Controller.ViewOffset = Controller.GetPlayerViewOffset( false );
-			Controller.Position = new_origin;
-			DuckTime = 0f;
+			Controller.Position = newPosition;
+			DuckTimer = 0f;
 			Controller.CategorizePosition( Controller.OnGround() );
 		}
 
 		public void SetDuckedEyeOffset( float frac )
 		{
-			Vector3 duck_mins = Controller.GetPlayerMins( true );
-			Vector3 stand_mins = Controller.GetPlayerMins( false );
-			float more = duck_mins.z - stand_mins.z;
-			float duck_view = Controller.GetPlayerViewOffset( true );
-			float stand_view = Controller.GetPlayerViewOffset( false );
-			float view_offset = ((duck_view - more) * frac) + (stand_view * (1 - frac));
+			Vector3 duckMins = Controller.GetPlayerMins( true );
+			Vector3 standMins = Controller.GetPlayerMins( false );
+			float more = duckMins.z - standMins.z;
+			float duckView = Controller.GetPlayerViewOffset( true );
+			float standView = Controller.GetPlayerViewOffset( false );
+			float viewOffset = ((duckView - more) * frac) + (standView * (1 - frac));
 
-			Controller.ViewOffset = view_offset;
+			Controller.ViewOffset = viewOffset;
 		}
 
 		public void UpdateDuckJumpEyeOffset()
 		{
-			if (DuckJumpTime != 0.0f)
+			if ( DuckJumpTimer != 0.0f )
 			{
-				float duck_ms = MathF.Max( 0.0f, DUCK_TIME - DuckJumpTime );
-				float duck_s = duck_ms / DUCK_TIME;
+				float duckMilliSec = MathF.Max( 0.0f, DuckingTime - DuckJumpTimer );
+				float duckSec = duckMilliSec / DuckingTime;
 
-				if (duck_s > TIME_TO_UNDUCK)
+				if ( duckSec > TimeToUnDuck )
 				{
-					DuckJumpTime = 0.0f;
+					DuckJumpTimer = 0.0f;
 					SetDuckedEyeOffset( 0.0f );
 				}
 				else
 				{
-					float duck_frac = SimpleSpline( 1.0f - (duck_s / TIME_TO_UNDUCK) );
-					SetDuckedEyeOffset( duck_frac );
+					float duckFrac = SimpleSpline( 1.0f - (duckSec / TimeToUnDuck) );
+					SetDuckedEyeOffset( duckFrac );
 				}
 			}
 		}
 
-		public void FinishUnDuckJump(ref TraceResult trace)
+		public void FinishUnDuckJump( TraceResult trace )
 		{
-			Vector3 hull_normal = Controller.GetPlayerMaxs( false ) - Controller.GetPlayerMins( false );
-			Vector3 hull_duck = Controller.GetPlayerMaxs( true ) - Controller.GetPlayerMins( true );
-			Vector3 hull_delta = (hull_normal - hull_duck); //* -1;
-			Vector3 new_origin = Controller.Position;
+			Vector3 hullNormal = Controller.GetPlayerMaxs( false ) - Controller.GetPlayerMins( false );
+			Vector3 hullDuck = Controller.GetPlayerMaxs( true ) - Controller.GetPlayerMins( true );
+			Vector3 hullDelta = (hullNormal - hullDuck);
+			Vector3 newPosition = Controller.Position;
 
-			float delta_z = hull_delta.z;
-			delta_z *= trace.Fraction;
-			delta_z -= hull_delta.z;
+			float deltaZ = hullDelta.z;
+			hullDelta.z *= trace.Fraction;
+			deltaZ -= hullDelta.z;
 
 			Controller.GetPlayer().RemoveFlag( PlayerFlags.DUCKING );
 			IsDucked = false;
+			ShouldDuck.Value = false;
 			IsDucking = false;
 			InDuckJump = false;
-			DuckTime = 0.0f;
-			DuckJumpTime = 0.0f;
+			DuckTimer = 0.0f;
+			DuckJumpTimer = 0.0f;
 			JumpTime = 0.0f;
 
-			float view_offset = Controller.GetPlayerViewOffset( false );
-			view_offset -= delta_z;
-			Controller.ViewOffset = view_offset;
+			float viewOffset = Controller.GetPlayerViewOffset( false );
+			viewOffset -= deltaZ;
+			Controller.ViewOffset = viewOffset;
 
-			new_origin = new_origin.WithZ( new_origin.z - delta_z );
-			Controller.Position = new_origin;
+			newPosition -= hullDelta;
+			Controller.Position = newPosition;
 			Controller.CategorizePosition( Controller.OnGround() );
 		}
 
 		public void FinishDuck()
 		{
-			if ( Controller.GetPlayer().GetFlag( PlayerFlags.DUCKING ) )
+			if ( ShouldDuck.Value )
 				return;
 
 			Controller.GetPlayer().AddFlag( PlayerFlags.DUCKING );
 			IsDucked = true;
+			ShouldDuck.Value = true;
 			IsDucking = false;
 
 			Controller.ViewOffset = Controller.GetPlayerViewOffset( true );
@@ -191,39 +214,41 @@ namespace Momentum
 		{
 			Controller.GetPlayer().AddFlag( PlayerFlags.DUCKING );
 			IsDucked = true;
+			ShouldDuck.Value = true;
 			IsDucking = false;
 
 			Controller.ViewOffset = Controller.GetPlayerViewOffset( true );
 
-			Vector3 new_origin = Controller.Position;
-			Vector3 hull_normal = Controller.GetPlayerMaxs( false ) - Controller.GetPlayerMins( false );
-			Vector3 hull_duck = Controller.GetPlayerMaxs( true ) - Controller.GetPlayerMins( true );
-			Vector3 view_delta = (hull_normal - hull_duck);
+			Vector3 newPosition = Controller.Position;
+			Vector3 hullNormal = Controller.GetPlayerMaxs( false ) - Controller.GetPlayerMins( false );
+			Vector3 hullDuck = Controller.GetPlayerMaxs( true ) - Controller.GetPlayerMins( true );
+			Vector3 hullDelta = (hullNormal - hullDuck);
 
-			new_origin += view_delta;
-			Controller.Position = new_origin;
+			newPosition += hullDelta;
+			Controller.Position = newPosition;
 
 			FixPlayerCrouchStuck( true );
 			Controller.CategorizePosition( Controller.OnGround() );
 		}
-		
-		public bool CanUnDuckJump(ref TraceResult trace)
+
+		public bool CanUnDuckJump( ref TraceResult trace )
 		{
-			Vector3 vec_end = Controller.Position;
-			vec_end = vec_end.WithZ( vec_end.z - 36.0f );
-			trace = TraceUtil.PlayerBBox( Controller.Position, vec_end, Controller );
+			Vector3 vecEnd = Controller.Position;
+			vecEnd.z -= 36.0f;
+			trace = TraceUtil.PlayerBBox( Controller.Position, vecEnd, Controller );
 
-			if (trace.Fraction < 1.0f)
+			if ( trace.Fraction < 1.0f )
 			{
-				vec_end = vec_end.WithZ( Controller.Position.z + (-36.0f * trace.Fraction) );
+				vecEnd.z = Controller.Position.z + (-36.0f * trace.Fraction);
 
-				TraceResult trace_up;
-				bool WasDucked = IsDucked;
-				IsDucked = false;
-				trace_up = TraceUtil.PlayerBBox( vec_end, vec_end, Controller );
-				IsDucked = WasDucked;
+				TraceResult traceUp;
+				traceUp = TraceUtil.Hull( vecEnd,
+							 vecEnd,
+							 Controller.GetPlayerMins( false ),
+							 Controller.GetPlayerMaxs( false ),
+							 Controller.Pawn );
 
-				if ( !trace_up.StartedSolid )
+				if ( !traceUp.StartedSolid )
 					return true;
 			}
 
@@ -232,55 +257,61 @@ namespace Momentum
 
 		public void Move()
 		{
-			bool bInAir = !Controller.OnGround();
-			bool bInDuck = Controller.GetPlayer().GetFlag( PlayerFlags.DUCKING );
-			bool bDuckJump = JumpTime > 0.0f;
-			bool bDuckJumpTime = DuckJumpTime > 0.0f;
-			bool DuckButton = Input.Down( InputButton.Duck );
+			bool inAir = !Controller.OnGround();
+			bool inDuck = (ShouldDuck.Value);
+			bool duckJump = JumpTime > 0.0f;
+			bool duckJumpTime = DuckJumpTimer > 0.0f;
+			bool duckButton = Input.Down( InputButton.Duck );
 
-			if ( DuckButton || IsDucking || bInDuck || bDuckJump)
+			if ( !inAir && inDuck && InDuckJump )
+				InDuckJump = false;
+
+			if ( duckButton || IsDucking || inDuck || duckJump )
 			{
-				if (DuckButton || bDuckJump)
+				if ( duckButton || duckJump )
 				{
-					if ( Input.Pressed( InputButton.Duck ) && !bInDuck && !bDuckJumpTime)
+					if ( Input.Pressed( InputButton.Duck ) && !inDuck && !duckJumpTime )
 					{
-						DuckTime = DUCK_TIME;
+						DuckTimer = DuckingTime;
 						IsDucking = true;
 					}
 
-					if (IsDucking && !bDuckJump && !bDuckJumpTime)
+					if ( IsDucking && !duckJump && !duckJumpTime )
 					{
-						float duck_ms = MathF.Max( 0.0f, DUCK_TIME - DuckTime );
-						float duck_s = duck_ms * 0.001f;
+						float duckMilliSec = MathF.Max( 0.0f, DuckingTime - DuckTimer );
+						float duckSec = duckMilliSec * 0.001f;
 
-						if ((duck_s > TIME_TO_DUCK) || bInDuck || bInAir)
+						if ( (duckSec > TimeToDuck) || inDuck || inAir )
 						{
 							FinishDuck();
 						}
 						else
 						{
-							float duck_frac = SimpleSpline( duck_s / TIME_TO_DUCK );
-							SetDuckedEyeOffset( duck_frac );
+							float duckFrac = SimpleSpline( duckSec / TimeToDuck );
+							SetDuckedEyeOffset( duckFrac );
 						}
 					}
 
-					if (bDuckJump)
+					if ( duckJump && (IsDucking || inDuck) )
 					{
-						if (!bInDuck )
+						if ( !inDuck )
 						{
-							if (DuckButton)
-								StartUnDuckJump();
+							StartUnDuckJump();
 						}
 						else
 						{
-							if (!DuckButton)
+							if ( !duckButton )
 							{
-								TraceResult trace = TraceUtil.PlayerBBox( Controller.Position, Controller.Position, Controller );
+								TraceResult trace = TraceUtil.PlayerBBox( Controller.Position,
+												 Controller.Position,
+												 Controller );
 
 								if ( CanUnDuckJump( ref trace ) )
 								{
-									FinishUnDuckJump( ref trace );
-									DuckJumpTime = ((TIME_TO_UNDUCK * 1000f) * (1.0f - trace.Fraction)) + TIME_TO_UNDUCK_INV;
+									FinishUnDuckJump( trace );
+									DuckJumpTimer = (TimeToUnDuck
+										* 1000f
+										* (1.0f - trace.Fraction)) + TimeToUnduckInv;
 								}
 							}
 						}
@@ -288,76 +319,81 @@ namespace Momentum
 				}
 				else
 				{
-					if (InDuckJump)
+					if ( InDuckJump )
 					{
-						if (!DuckButton)
-						{
-							TraceResult trace = TraceUtil.PlayerBBox( Controller.Position, Controller.Position, Controller );
-
-							if (CanUnDuckJump(ref trace))
-							{
-								FinishUnDuckJump( ref trace );
-
-								if (trace.Fraction < 1.0f)
-								{
-									DuckJumpTime = ((TIME_TO_UNDUCK * 1000f) * (1.0f - trace.Fraction)) + TIME_TO_UNDUCK_INV;
-								}
-							}
-						}
-						else
+						if ( duckButton )
 						{
 							InDuckJump = false;
 						}
+						else
+						{
+							TraceResult trace = TraceUtil.PlayerBBox( Controller.Position,
+												Controller.Position,
+												Controller );
+
+							if ( CanUnDuckJump( ref trace ) )
+							{
+								FinishUnDuckJump( trace );
+
+								if ( trace.Fraction < 1.0f )
+								{
+									DuckJumpTimer = (TimeToUnDuck
+										* 1000f
+										* (1.0f - trace.Fraction)) + TimeToUnduckInv;
+								}
+							}
+						}
 					}
 
-					if ( bDuckJumpTime )
+					if ( duckJumpTime )
 						return;
 
-					if ( (bool)Controller.MoveProp["AllowAutoMovement"] || bInAir || IsDucking)
+					if ( (bool)Controller.MoveProp["AllowAutoMovement"] || inAir || IsDucking )
 					{
 						if ( Input.Released( InputButton.Duck ) )
 						{
-							DuckTime = DUCK_TIME;
+							DuckTimer = DuckingTime;
 						}
-						else if (IsDucking && !IsDucked)
+						else if ( IsDucking && !GetShouldDuck() )
 						{
-							float unduck_ms = 1000.0f * TIME_TO_UNDUCK;
-							float duck_ms = 1000.0f * TIME_TO_DUCK;
-							float elapsed_ms = DUCK_TIME - DuckTime;
+							float unDuckMilliSec = 1000.0f * TimeToUnDuck;
+							float duckMilliSec = 1000.0f * TimeToDuck;
+							float elapsedMilliSec = DuckingTime - DuckTimer;
 
-							float frac_ducked = elapsed_ms / duck_ms;
-							float remaining_unduck_ms = frac_ducked * unduck_ms;
+							float duckFrac = elapsedMilliSec / duckMilliSec;
+							float remainingDuckTime = duckFrac * unDuckMilliSec;
 
-							DuckTime = DUCK_TIME - unduck_ms + remaining_unduck_ms;
+							DuckTimer = DuckingTime - unDuckMilliSec + remainingDuckTime;
 						}
 					}
 
-					if (CanUnDuck())
+					if ( CanUnDuck() )
 					{
-						if (IsDucking || IsDucked)
+						if ( IsDucking || GetShouldDuck() )
 						{
-							float duck_ms = MathF.Max( 0.0f, DUCK_TIME - DuckTime );
-							float duck_s = duck_ms * 0.001f;
+							float duckMilliSec = MathF.Max( 0.0f, DuckingTime - DuckTimer );
+							float duckSec = duckMilliSec * 0.001f;
 
-							if (duck_s > TIME_TO_UNDUCK || (bInAir && !bDuckJump))
+							if ( duckSec > TimeToUnDuck || (inAir && !duckJump) )
 							{
 								FinishUnDuck();
 							}
 							else
 							{
-								float duck_frac = SimpleSpline( 1.0f - (duck_s / TIME_TO_UNDUCK) );
-								SetDuckedEyeOffset( duck_frac );
+								float duckFrac = SimpleSpline( 1.0f - (duckSec / TimeToUnDuck) );
+								SetDuckedEyeOffset( duckFrac );
 								IsDucking = true;
 							}
 						}
 					}
 					else
 					{
-						if (DuckTime != DUCK_TIME)
+						if ( DuckTimer != DuckingTime )
 						{
 							SetDuckedEyeOffset( 1.0f );
-							DuckTime = DUCK_TIME;
+							DuckTimer = DuckingTime;
 							IsDucked = true;
+							ShouldDuck.Value = true;
 							IsDucking = false;
 							Controller.GetPlayer().AddFlag( PlayerFlags.DUCKING );
 						}
@@ -365,12 +401,12 @@ namespace Momentum
 				}
 			}
 
-			if (IsDucking || IsDucked)
+			if ( IsDucking || GetShouldDuck() )
 			{
 				Controller.SetTag( "ducked" );
 			}
 			//Log.Info( Controller.ViewOffset - Controller.GetPlayerViewOffset( false ) );
-			if (DuckJumpTime == 0.0f && MathF.Abs( Controller.ViewOffset - Controller.GetPlayerViewOffset(false) ) > 0.1)
+			if ( DuckJumpTimer == 0.0f && MathF.Abs( Controller.ViewOffset - Controller.GetPlayerViewOffset( false ) ) > 0.1 )
 			{
 				//SetDuckedEyeOffset( 0.0f );
 			}
@@ -378,27 +414,32 @@ namespace Momentum
 
 		public void ReduceTimers()
 		{
-			float frame_msec = 1000.0f * Time.Delta;
+			float frameMilliSec = 1000.0f * Time.Delta;
 
-			if ( DuckTime > 0 )
+			if ( DuckTimer > 0 )
 			{
-				DuckTime -= frame_msec;
-				if ( DuckTime < 0 )
+				DuckTimer -= frameMilliSec;
+
+				if ( DuckTimer < 0 )
 				{
-					DuckTime = 0;
+					DuckTimer = 0;
 				}
 			}
-			if ( DuckJumpTime > 0 )
+
+			if ( DuckJumpTimer > 0 )
 			{
-				DuckJumpTime -= frame_msec;
-				if ( DuckJumpTime < 0 )
+				DuckJumpTimer -= frameMilliSec;
+
+				if ( DuckJumpTimer < 0 )
 				{
-					DuckJumpTime = 0;
+					DuckJumpTimer = 0;
 				}
 			}
+
 			if ( JumpTime > 0 )
 			{
-				JumpTime -= frame_msec;
+				JumpTime -= frameMilliSec;
+
 				if ( JumpTime < 0 )
 				{
 					JumpTime = 0;
