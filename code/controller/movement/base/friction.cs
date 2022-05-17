@@ -8,8 +8,8 @@ namespace Momentum
 		// # Source Movement Friction
 
 		public virtual Vector3 ApplyFriction( Vector3 velocity,
-									   float friction,
-									   float stopSpeed )
+										float friction,
+										float stopSpeed )
 		{
 			float speed = velocity.Length;
 			float control = MathF.Max( speed, stopSpeed );

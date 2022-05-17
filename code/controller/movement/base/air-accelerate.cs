@@ -17,17 +17,17 @@ namespace Momentum
 		}
 
 		public virtual Vector3 GetAccelSpeed( Vector3 strafeDir,
-									   float length,
-									   float velDiff,
-									   float accel )
+										float length,
+										float velDiff,
+										float accel )
 		{
 			return strafeDir * MathX.Clamp( length * accel * Time.Delta, 0, velDiff );
 		}
 
 		public virtual Vector3 GetFinalVelocity( Vector3 velocity,
-										  Vector3 strafeVel,
-										  float maxSpeed,
-										  float accel )
+											Vector3 strafeVel,
+											float maxSpeed,
+											float accel )
 		{
 			Vector3 strafeDir = strafeVel.Normal;
 			float strafeVelLength = CapWishSpeed( strafeVel.Length, maxSpeed );
@@ -38,20 +38,20 @@ namespace Momentum
 		}
 
 		public virtual void Move( ref Vector3 velocity,
-						   Vector3 strafeVel,
-						   float maxSpeed,
-						   float accel )
+							Vector3 strafeVel,
+							float maxSpeed,
+							float accel )
 		{
 			velocity = GetFinalVelocity( velocity, strafeVel, maxSpeed, accel );
 		}
 		public virtual void Move( ref Vector3 velocity,
-						   Vector3 strafeVel,
-						   float maxSpeed,
-						   float sideStrafeMaxSpeed,
-						   float accel,
-						   float strafeAccelerate,
-						   float airStop,
-						   float airControl )
+							Vector3 strafeVel,
+							float maxSpeed,
+							float sideStrafeMaxSpeed,
+							float accel,
+							float strafeAccelerate,
+							float airStop,
+							float airControl )
 		{
 		}
 	}

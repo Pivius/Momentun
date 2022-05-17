@@ -12,9 +12,9 @@ namespace Momentum
 		}
 
 		public virtual float AdjustAccel( float dotVel,
-								   float accel,
-								   float strafeAccel,
-								   float airStopAccel )
+									float accel,
+									float strafeAccel,
+									float airStopAccel )
 		{
 			if ( dotVel < 0.0f || (Input.Forward != 0.0f && Input.Left == 0) )
 				accel = airStopAccel;
@@ -26,18 +26,18 @@ namespace Momentum
 		}
 
 		public virtual Vector3 GetFinalVelocity( Vector3 velocity,
-										  Vector3 strafeVel,
-										  float strafeVelLength,
-										  float accel,
-										  float strafeAccel,
-										  float airStopAccel )
+											Vector3 strafeVel,
+											float strafeVelLength,
+											float accel,
+											float strafeAccel,
+											float airStopAccel )
 		{
 			Vector3 strafeDir = strafeVel.Normal;
 			float velDiff = GetVelDiff( velocity, strafeVelLength, strafeDir );
 			Vector3 accelSpeed = GetAccelSpeed( strafeDir,
-									   strafeVelLength,
-									   velDiff,
-									   AdjustAccel( velocity.Dot( strafeDir ), accel, strafeAccel, airStopAccel ) );
+										strafeVelLength,
+										velDiff,
+										AdjustAccel( velocity.Dot( strafeDir ), accel, strafeAccel, airStopAccel ) );
 
 			return velocity + accelSpeed;
 		}

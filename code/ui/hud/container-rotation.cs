@@ -20,7 +20,7 @@ namespace Momentum
 		}
 
 		public void NewContainer<T>( string identifier = null,
-							  int alignment = 1 ) where T : Container, new()
+								int alignment = 1 ) where T : Container, new()
 		{
 			if ( identifier == null )
 				identifier = typeof( T ).ToString().Split( "." )[1];

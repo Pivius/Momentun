@@ -87,10 +87,10 @@ namespace Momentum
 		}
 
 		public virtual bool CheckWater( Vector3 position,
-								 Vector3 mins,
-								 Vector3 maxs,
-								 float viewPos,
-								 Entity pawn )
+									Vector3 mins,
+									Vector3 maxs,
+									float viewPos,
+									Entity pawn )
 		{
 			var point = TraceUtil.NewHull( position, position, mins, maxs, 1 )
 				.HitLayer( CollisionLayer.All, false )
@@ -167,8 +167,8 @@ namespace Momentum
 		}
 
 		protected static float GetNewSpeed( float speed,
-									 float friction,
-									 ref Vector3 velocity )
+										float friction,
+										ref Vector3 velocity )
 		{
 			float newSpeed;
 
@@ -190,10 +190,10 @@ namespace Momentum
 		}
 
 		public virtual void Move( BaseController controller,
-						   Vector3 strafeVel = new Vector3() )
+							Vector3 strafeVel = new Vector3() )
 		{
 			strafeVel = GetSwimVel( (float)controller.MoveProp["MaxSpeed"],
-						  controller.GetPlayer().KeyDown( InputButton.Jump ) );
+							controller.GetPlayer().KeyDown( InputButton.Jump ) );
 			Vector3 velocity = controller.Velocity;
 			Vector3 position = controller.Position;
 			Vector3 strafeDir = strafeVel.Normal;
@@ -215,8 +215,8 @@ namespace Momentum
 					addSpeed = strafeVelLength - newSpeed - velocity.Dot( strafeDir );
 
 				float accelSpeed = CapWishSpeed( (float)controller.MoveProp["WaterAccelerate"]
-									  * strafeVelLength
-									  * Time.Delta, addSpeed );
+										* strafeVelLength
+										* Time.Delta, addSpeed );
 				velocity += accelSpeed * strafeDir;
 			}
 

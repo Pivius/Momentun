@@ -5,10 +5,10 @@ namespace Momentum
 	public partial class MomentumPlayer : Player
 	{
 		protected ulong SpawnButtons = (ulong)InputButton.Forward
-								 | (ulong)InputButton.Right
-								 | (ulong)InputButton.Left
-								 | (ulong)InputButton.Back
-								 | (ulong)InputButton.Jump;
+									| (ulong)InputButton.Right
+									| (ulong)InputButton.Left
+									| (ulong)InputButton.Back
+									| (ulong)InputButton.Jump;
 		public int Flags = 0;
 		public MomentumPlayer() { }
 

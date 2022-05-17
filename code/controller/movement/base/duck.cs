@@ -89,8 +89,8 @@ namespace Momentum
 					pos = pos.WithZ( pos.z + direction );
 					Controller.Position = pos;
 					trace = TraceUtil.PlayerBBox( Controller.Position,
-								  Controller.Position,
-								  Controller );
+									Controller.Position,
+									Controller );
 
 					if ( !trace.StartedSolid )
 						return;

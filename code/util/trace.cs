@@ -37,9 +37,9 @@ namespace Momentum
 		}
 
 		public static TraceResult PlayerBBox( Vector3 start,
-									   Vector3 end,
-									   BaseController controller,
-									   float liftFeet = 0.0f )
+										Vector3 end,
+										BaseController controller,
+										float liftFeet = 0.0f )
 		{
 			Vector3 maxs = controller.GetPlayerMaxs();
 			Vector3 mins = controller.GetPlayerMins();
@@ -63,10 +63,10 @@ namespace Momentum
 		}
 
 		public static Trace NewHull( Vector3 start,
-							  Vector3 end,
-							  Vector3 mins,
-							  Vector3 maxs,
-							  float liftFeet = 0.0f )
+								Vector3 end,
+								Vector3 mins,
+								Vector3 maxs,
+								float liftFeet = 0.0f )
 		{
 			if ( liftFeet > 0 )
 			{

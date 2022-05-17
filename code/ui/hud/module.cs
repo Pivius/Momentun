@@ -66,8 +66,8 @@ namespace Momentum
 		public void SetStyle( params string[] props )
 		{
 			foreach ( var elementProp in from string item in props
-										  let elementProp = item.Split( ":" )
-										  select elementProp )
+											let elementProp = item.Split( ":" )
+											select elementProp )
 			{
 				Style.Set( elementProp[0], elementProp[1].Trim() );
 			}
