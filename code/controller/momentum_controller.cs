@@ -2,14 +2,46 @@ using Sandbox;
 
 namespace Momentum
 {
-	public class MomentumController : BaseController
+	public partial class MomentumController : BaseController
 	{
-		public TimeSince DoubleJumpTime;
+		[Net, Predicted]
+		public TimeSince DoubleJumpTime { get; set; }
+		[Net, Predicted]
 		public bool DoubleJumped { get; private set; }
+		[Net, Predicted]
+		public TimeSince ClipTime { get; set; }
+		public TimeAssociatedMap<bool> ShouldClip { get; set; }
 
 		public MomentumController()
 		{
 			AirAccelerate = new QuakeAirAccelerate();
+			ShouldClip = new TimeAssociatedMap<bool>( 1f, GetShouldClip );
+		}
+
+		public bool GetShouldClip()
+		{
+			if ( Player.IsServer )
+				return ClipTime <= (float)MoveProp["ClipTime"];
+			else
+				return (ClipTime <= (float)MoveProp["ClipTime"]);
+		}
+
+		public virtual void TryPlayerClip( in Vector3 primalVelocity )
+		{
+			if ( ShouldClip.Value )
+			{
+				Velocity = primalVelocity;
+			}
+			else
+			{
+				ShouldClip.Value = false;
+			}
+		}
+		public override void TryPlayerMove()
+		{
+			var primalVelocity = Velocity;
+			base.TryPlayerMove();
+			TryPlayerClip( in primalVelocity );
 		}
 
 		public override void AirMove()
@@ -48,17 +80,17 @@ namespace Momentum
 		public override void CheckJumpButton()
 		{
 
-			if ( Water.JumpTime > 0.0f )
+			if ( Player.Water.JumpTime > 0.0f )
 			{
-				Water.JumpTime -= Time.Delta;
+				Player.Water.JumpTime -= Time.Delta;
 
-				if ( Water.JumpTime < 0.0f )
-					Water.JumpTime = 0;
+				if ( Player.Water.JumpTime < 0.0f )
+					Player.Water.JumpTime = 0;
 
 				return;
 			}
 
-			if ( Water.WaterLevel >= WATERLEVEL.Waist )
+			if ( Player.Water.WaterLevel >= WATERLEVEL.Waist )
 			{
 				ClearGroundEntity();
 				Velocity = Velocity.WithZ( 100 );
@@ -88,8 +120,8 @@ namespace Momentum
 			Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ( jumpVelocity ) );
 			AddEvent( "jump" );
 
-			Duck.JumpTime = Duck.JumpingTime;
-			Duck.InDuckJump = true;
+			Player.Duck.JumpTime = Player.Duck.JumpingTime;
+			Player.Duck.InDuckJump = true;
 			ShouldClip.Value = true;
 			ClipTime = 0;
 		}

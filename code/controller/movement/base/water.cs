@@ -2,22 +2,28 @@ using Sandbox;
 
 namespace Momentum
 {
-	public partial class Water : Accelerate
+	public partial class Water : PredictedComponent
 	{
 		// # Source Water Movement
 
-		[Net, Predicted] public float JumpTime { get; set; }
-		[Net, Predicted] public Vector3 JumpVel { get; set; }
-		[Net, Predicted] public float EntryTime { get; set; }
+		[Net, Predicted] 
+		public float JumpTime { get; set; }
+		[Net, Predicted] 
+		public Vector3 JumpVel { get; set; }
+		[Net, Predicted] 
+		public float EntryTime { get; set; }
+		[Net]
 		public float MaxJumpLedge { get; private set; } = 8.0f;
+		[Net]
 		public float SinkSpeed { get; private set; } = 60.0f;
+		[Net]
 		public float JumpHeight { get; set; } = 256.0f;
-		public WATERLEVEL WaterLevel { get; set; } = 0;
+		[Net]
+		public new WATERLEVEL WaterLevel { get; set; } = 0;
+		[Net]
 		public WATERLEVEL OldWaterLevel { get; set; } = 0;
 
-		public virtual Vector3 CheckWaterJump( Vector3 velocity,
-										Vector3 position,
-										BaseController controller )
+		public virtual Vector3 CheckWaterJump( Vector3 velocity, Vector3 position)
 		{
 			if ( JumpTime == 0 ) // Already water jumping.
 			{
@@ -31,22 +37,22 @@ namespace Momentum
 					if ( flatVelocity.Length != 0.0f && (flatVelocity.Dot( viewDir ) >= 0.0f) )
 					{
 						// Start line trace at waist height (using the center of the player for this here)
-						var traceStart = position + (controller.GetPlayerMins() + controller.GetPlayerMaxs()) * 0.5f;
+						var traceStart = position + (Controller.GetPlayerMins() + Controller.GetPlayerMaxs()) * 0.5f;
 						var traceEnd = traceStart + (viewDir * 24.0f);
-						var trace = TraceUtil.PlayerBBox( traceStart, traceEnd, controller );
+						var trace = TraceUtil.PlayerBBox( traceStart, traceEnd, Controller );
 
 						if ( trace.Fraction < 1.0f ) // solid at waist
 						{
-							traceStart = traceStart.WithZ( position.z + controller.ViewOffset + MaxJumpLedge );
+							traceStart = traceStart.WithZ( position.z + Controller.ViewOffset + MaxJumpLedge );
 							traceEnd = traceStart + (viewDir * 24.0f);
 							JumpVel = trace.Normal * -50.0f;
-							trace = TraceUtil.PlayerBBox( traceStart, traceEnd, controller );
+							trace = TraceUtil.PlayerBBox( traceStart, traceEnd, Controller );
 
 							if ( trace.Fraction == 1.0f ) // open at eye level
 							{
 								traceStart = traceEnd; // Now trace down to see if we would actually land on a standable surface.
 								traceEnd.z -= 1024.0f;
-								trace = TraceUtil.PlayerBBox( traceStart, traceEnd, controller );
+								trace = TraceUtil.PlayerBBox( traceStart, traceEnd, Controller );
 
 								if ( trace.Fraction < 1.0f && trace.Normal.z >= 0.7f )
 								{
@@ -160,7 +166,8 @@ namespace Momentum
 			}
 			else
 			{
-				strafeVel.z += upSpeed + CapWishSpeed( forwardSpeed * forward.z * 2.0f, maxSpeed );
+				
+				strafeVel.z += upSpeed + MathX.Clamp( forwardSpeed * forward.z * 2.0f, 0, maxSpeed );
 			}
 
 			return strafeVel;
@@ -189,22 +196,21 @@ namespace Momentum
 			return newSpeed;
 		}
 
-		public virtual void Move( BaseController controller,
-							Vector3 strafeVel = new Vector3() )
+		public override void Simulate()
 		{
-			strafeVel = GetSwimVel( (float)controller.MoveProp["MaxSpeed"],
-							controller.GetPlayer().KeyDown( InputButton.Jump ) );
-			Vector3 velocity = controller.Velocity;
-			Vector3 position = controller.Position;
+			var strafeVel = GetSwimVel( (float)Controller.MoveProp["MaxSpeed"], Player.KeyDown( InputButton.Jump ) );
+			Vector3 velocity = Controller.Velocity;
+			Vector3 position = Controller.Position;
 			Vector3 strafeDir = strafeVel.Normal;
 			Vector3 startTrace;
 			Vector3 endTrace;
 			TraceResult trace;
 			float speed = velocity.Length;
 			float newSpeed = GetNewSpeed( speed,
-								(float)controller.MoveProp["WaterFriction"],
+								(float)Controller.MoveProp["WaterFriction"],
 								ref velocity );
-			float strafeVelLength = CapWishSpeed( strafeVel.Length, (float)controller.MoveProp["SwimSpeed"] );
+			
+			float strafeVelLength = MathX.Clamp( strafeVel.Length, 0, (float)Controller.MoveProp["SwimSpeed"] );
 
 			// water acceleration
 			if ( strafeVelLength >= 0.1f )
@@ -214,49 +220,49 @@ namespace Momentum
 				if ( addSpeed <= 0 )
 					addSpeed = strafeVelLength - newSpeed - velocity.Dot( strafeDir );
 
-				float accelSpeed = CapWishSpeed( (float)controller.MoveProp["WaterAccelerate"]
+				float accelSpeed = MathX.Clamp( (float)Controller.MoveProp["WaterAccelerate"]
 										* strafeVelLength
-										* Time.Delta, addSpeed );
+										* Time.Delta, 0, addSpeed );
 				velocity += accelSpeed * strafeDir;
 			}
 
-			velocity += controller.BaseVelocity;
+			velocity += Controller.BaseVelocity;
 			endTrace = position + velocity * Time.Delta;
-			trace = TraceUtil.PlayerBBox( position, endTrace, controller );
+			trace = TraceUtil.PlayerBBox( position, endTrace, Controller );
 
 			if ( trace.Fraction == 1.0f )
 			{
 				startTrace = endTrace;
 
-				if ( (bool)controller.MoveProp["AllowAutoMovement"] )
-					startTrace.WithZ( startTrace.z + (float)controller.MoveProp["StepSize"] + 1 );
+				if ( (bool)Controller.MoveProp["AllowAutoMovement"] )
+					startTrace.WithZ( startTrace.z + (float)Controller.MoveProp["StepSize"] + 1 );
 
-				trace = TraceUtil.PlayerBBox( startTrace, endTrace, controller );
+				trace = TraceUtil.PlayerBBox( startTrace, endTrace, Controller );
 
 				if ( !trace.StartedSolid )
 				{
 					//float stepDist = trace.EndPos.z - pos.z;
 					//mv->m_outStepHeight += stepDist;
-					controller.Position = trace.EndPosition;
-					controller.Velocity = velocity - controller.BaseVelocity;
+					Controller.Position = trace.EndPosition;
+					Controller.Velocity = velocity - Controller.BaseVelocity;
 					return;
 				}
 
-				controller.TryPlayerMove();
+				Controller.TryPlayerMove();
 			}
 			else
 			{
-				if ( !controller.OnGround() )
+				if ( !Controller.OnGround() )
 				{
-					controller.TryPlayerMove();
-					controller.Velocity = velocity - controller.BaseVelocity;
+					Controller.TryPlayerMove();
+					Controller.Velocity = velocity - Controller.BaseVelocity;
 					return;
 				}
 
-				controller.StepMove();
+				Controller.StepMove();
 			}
 
-			controller.Velocity = velocity - controller.BaseVelocity;
+			Controller.Velocity = velocity - Controller.BaseVelocity;
 		}
 	}
 }

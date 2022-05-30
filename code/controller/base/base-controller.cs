@@ -14,24 +14,19 @@ namespace Momentum
 		public Vector3 OBBMins{get; set;} = new Vector3(-16, -16, 0);
 		public Vector3 OBBMaxs{get; set;} = new Vector3(16, 16, 72);
 		public Vector3 OldVelocity{get; set;}
-		public TimeAssociatedMap<bool> ShouldClip { get; set; }
-		public TimeSince ClipTime { get; set; }
 
 		public BaseController()
 		{
 			AirAccelerate = new AirAccelerate();
-			Duck = new Duck(this);
 			Accelerate = new Accelerate();
 			Gravity = new Gravity();
 			Friction = new Friction();
-			Water = new Water();
 			Unstuck = new Unstuck(this);
-			ShouldClip = new TimeAssociatedMap<bool>( 1f, GetShouldClip );
 		}
 
-		public virtual MomentumPlayer GetPlayer() => (MomentumPlayer)Pawn;
-		public Property MoveProp => GetPlayer().MovementProps;
-		public Property ViewProp => GetPlayer().ViewProps;
+		public MomentumPlayer Player => (MomentumPlayer)Pawn;
+		public Property MoveProp => Player.MovementProps;
+		public Property ViewProp => Player.ViewProps;
 
 		public override TraceResult TraceBBox( Vector3 start,
 										Vector3 end,
@@ -59,13 +54,13 @@ namespace Momentum
 
 		public virtual Vector3 GetPlayerMins()
 		{
-			return Duck.ShouldDuck.Value ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : 
+			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : 
 										((Vector3)ViewProp["StandMins"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs()
 		{
-			return Duck.ShouldDuck.Value ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : 
+			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : 
 										((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
 		}
 
@@ -95,20 +90,6 @@ namespace Momentum
 			{
 				SetBBox(mins, maxs);
 			}
-		}
-
-		public virtual void ReduceTimers()
-		{
-			float frameMilliSec = 1000.0f * Time.Delta;
-			Duck.ReduceTimers( frameMilliSec );
-		}
-
-		public bool GetShouldClip()
-		{
-			if ( GetPlayer().IsServer )
-				return ClipTime <= (float)MoveProp["ClipTime"];
-			else
-				return ShouldClip.LastValue && (ClipTime <= (float)MoveProp["ClipTime"]);
 		}
 
 		public bool OnGround() => GroundEntity != null;

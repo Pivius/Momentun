@@ -7,12 +7,10 @@ namespace Momentum
 	public abstract partial class BaseController : WalkController
 	{
 		// # Fields
+		public new Gravity Gravity;
 		public AirAccelerate AirAccelerate;
 		public new Accelerate Accelerate;
-		public new Gravity Gravity;
 		public Friction Friction;
-		public Water Water;
-		public new Duck Duck;
 
 		public float GetWalkSpeed()
 		{
@@ -23,7 +21,7 @@ namespace Momentum
 							(isRunning ? (float)MoveProp["RunSpeed"] :
 							defaultSpeed);
 
-			return Duck.ShouldDuck.Value ? walkSpeed * ((float)MoveProp["DuckedWalkSpeed"] / defaultSpeed) : walkSpeed;
+			return Player.Duck.IsDucked ? walkSpeed * ((float)MoveProp["DuckedWalkSpeed"] / defaultSpeed) : walkSpeed;
 		}
 
 		public static Vector3 WishVel( float strafeSpeed )
@@ -147,18 +145,6 @@ namespace Momentum
 			Velocity = mover.Velocity;
 		}
 
-		public virtual void TryPlayerClip( in Vector3 primalVelocity )
-		{
-			if ( ShouldClip.Value )
-			{
-				Velocity = primalVelocity;
-			}
-			else
-			{
-				ShouldClip.Value = false;
-			}
-		}
-
 		/// <summary>
 		/// Does sliding when on a ramp or surf
 		/// </summary>
@@ -174,7 +160,6 @@ namespace Momentum
 
 			Position = mover.Position;
 			Velocity = mover.Velocity;
-			TryPlayerClip( in primalVelocity );
 		}
 
 		public override void AirMove()
@@ -269,17 +254,17 @@ namespace Momentum
 		public override void CheckJumpButton()
 		{
 
-			if ( Water.JumpTime > 0.0f )
+			if ( Player.Water.JumpTime > 0.0f )
 			{
-				Water.JumpTime -= Time.Delta;
+				Player.Water.JumpTime -= Time.Delta;
 
-				if ( Water.JumpTime < 0.0f )
-					Water.JumpTime = 0;
+				if ( Player.Water.JumpTime < 0.0f )
+					Player.Water.JumpTime = 0;
 
 				return;
 			}
 
-			if ( Water.WaterLevel >= WATERLEVEL.Waist )
+			if ( Player.Water.WaterLevel >= WATERLEVEL.Waist )
 			{
 				ClearGroundEntity();
 				Velocity = Velocity.WithZ( 100 );
@@ -293,8 +278,8 @@ namespace Momentum
 			Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ( (float)MoveProp["JumpPower"] ) );
 			AddEvent( "jump" );
 
-			Duck.JumpTime = Duck.JumpingTime;
-			Duck.InDuckJump = true;
+			Player.Duck.JumpTime = Player.Duck.JumpingTime;
+			Player.Duck.InDuckJump = true;
 		}
 
 		public override void CheckLadder()
@@ -337,7 +322,7 @@ namespace Momentum
 		public virtual bool StartMove()
 		{
 			//if (Host.IsServer)
-			//Duck.TryDuck();
+			//Player.Duck.TryDuck();
 			//Log.Info( GetViewOffset() );
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
 			EyeRotation = Input.Rotation;
@@ -361,8 +346,7 @@ namespace Momentum
 		/// </returns>
 		public virtual bool SetupMove()
 		{
-			ReduceTimers();
-			Swimming = Water.CheckWater( Position, OBBMins, OBBMaxs, GetViewOffset(), Pawn );
+			Swimming = Player.Water.CheckWater( Position, OBBMins, OBBMaxs, GetViewOffset(), Pawn );
 
 			//
 			// Start Gravity
@@ -374,25 +358,25 @@ namespace Momentum
 				BaseVelocity = BaseVelocity.WithZ( 0 );
 			}
 
-			if ( Water.JumpTime > 0.0f )
+			if ( Player.Water.JumpTime > 0.0f )
 			{
-				Velocity = Water.WaterJump( Velocity );
+				Velocity = Player.Water.WaterJump( Velocity );
 				TryPlayerMove();
 				return true;
 			}
 
-			if ( Water.WaterLevel >= WATERLEVEL.Waist )
+			if ( Player.Water.WaterLevel >= WATERLEVEL.Waist )
 			{
-				if ( Water.WaterLevel == WATERLEVEL.Waist )
-					Velocity = Water.CheckWaterJump( Velocity, Position, this );
+				if ( Player.Water.WaterLevel == WATERLEVEL.Waist )
+					Velocity = Player.Water.CheckWaterJump( Velocity, Position );
 
-				if ( Velocity.z < 0.0f && Water.JumpTime > 0.0f )
-					Water.JumpTime = 0.0f;
+				if ( Velocity.z < 0.0f && Player.Water.JumpTime > 0.0f )
+					Player.Water.JumpTime = 0.0f;
 
 				if ( (bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
 
-				Water.Move( this );
+				Player.Water.Simulate(Client);
 				CategorizePosition( OnGround() );
 
 				if ( OnGround() )
@@ -414,8 +398,8 @@ namespace Momentum
 					Velocity = velocity;
 				}
 
-				Duck.UpdateDuckJumpEyeOffset();
-				Duck.Move();
+				Player.Duck.UpdateDuckJumpEyeOffset();
+				Player.Duck.Simulate( Client );
 
 				if ( !IsTouchingLadder )
 					WishVelocity = WishVelocity.WithZ( 0 );
