@@ -19,7 +19,7 @@ namespace Momentum
 			Controller = new MomentumController();
 			Animator = new StandardPlayerAnimator();
 			CameraMode = new MomentumCamera();
-			
+
 			EnableAllCollisions = true;
 			EnableDrawing = true;
 			EnableHideInFirstPerson = true;

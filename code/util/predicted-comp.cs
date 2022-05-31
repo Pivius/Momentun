@@ -4,12 +4,12 @@ namespace Momentum
 {
 	public partial class PredictedComponent : Entity
 	{
-		public MomentumPlayer Player 
-		{ 
+		public MomentumPlayer Player
+		{
 			get => (MomentumPlayer)Owner;
 			set => SetOwner( value );
 		}
-		
+
 		public MomentumController Controller { get; set; }
 
 		public void SetOwner( Entity player )

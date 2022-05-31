@@ -1,8 +1,5 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System;
 using Sandbox;
-using System.Threading.Tasks;
+using System;
 
 namespace Momentum
 {
@@ -10,10 +7,10 @@ namespace Momentum
 	{
 		public Vector3 LadderNormal;
 		public bool IsTouchingLadder = false;
-		public float ViewOffset{get; set;} = 64.0f;
-		public Vector3 OBBMins{get; set;} = new Vector3(-16, -16, 0);
-		public Vector3 OBBMaxs{get; set;} = new Vector3(16, 16, 72);
-		public Vector3 OldVelocity{get; set;}
+		public float ViewOffset { get; set; } = 64.0f;
+		public Vector3 OBBMins { get; set; } = new Vector3( -16, -16, 0 );
+		public Vector3 OBBMaxs { get; set; } = new Vector3( 16, 16, 72 );
+		public Vector3 OldVelocity { get; set; }
 
 		public BaseController()
 		{
@@ -21,7 +18,7 @@ namespace Momentum
 			Accelerate = new Accelerate();
 			Gravity = new Gravity();
 			Friction = new Friction();
-			Unstuck = new Unstuck(this);
+			Unstuck = new Unstuck( this );
 		}
 
 		public MomentumPlayer Player => (MomentumPlayer)Pawn;
@@ -42,31 +39,31 @@ namespace Momentum
 
 		public virtual Vector3 GetPlayerMins( bool isDucked )
 		{
-			return isDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : 
+			return isDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) :
 							((Vector3)ViewProp["StandMins"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs( bool isDucked )
 		{
-			return isDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : 
+			return isDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) :
 							((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMins()
 		{
-			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) : 
+			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) :
 										((Vector3)ViewProp["StandMins"] * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs()
 		{
-			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) : 
+			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) :
 										((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
 		}
 
 		public virtual float GetPlayerViewOffset( bool isDucked )
 		{
-			return isDucked ? ((float)ViewProp["DuckViewOffset"] * Pawn.Scale) : 
+			return isDucked ? ((float)ViewProp["DuckViewOffset"] * Pawn.Scale) :
 							((float)ViewProp["StandViewOffset"] * Pawn.Scale);
 		}
 
@@ -75,7 +72,7 @@ namespace Momentum
 			return ViewOffset * Pawn.Scale;
 		}
 
-		public override void SetBBox(Vector3 mins, Vector3 maxs)
+		public override void SetBBox( Vector3 mins, Vector3 maxs )
 		{
 			OBBMins = mins;
 			OBBMaxs = maxs;
@@ -86,9 +83,9 @@ namespace Momentum
 			var mins = GetPlayerMins();
 			var maxs = GetPlayerMaxs();
 
-			if (OBBMins != mins || OBBMaxs != maxs)
+			if ( OBBMins != mins || OBBMaxs != maxs )
 			{
-				SetBBox(mins, maxs);
+				SetBBox( mins, maxs );
 			}
 		}
 
@@ -105,17 +102,17 @@ namespace Momentum
 			base.FrameSimulate();
 
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
-			WishVelocity = WishVel( (float)MoveProp["MaxMove"]);
+			WishVelocity = WishVel( (float)MoveProp["MaxMove"] );
 		}
 
 		public override void Simulate()
 		{
-			if (StartMove()) 
+			if ( StartMove() )
 				return;
 
-			if (SetupMove()) 
+			if ( SetupMove() )
 				return;
-			
+
 			EndMove();
 		}
 	}

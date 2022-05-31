@@ -1,5 +1,4 @@
 using Sandbox;
-using System.Diagnostics;
 using Trace = Sandbox.Trace;
 
 namespace Momentum
@@ -17,7 +16,7 @@ namespace Momentum
 			float defaultSpeed = (float)MoveProp["DefaultSpeed"];
 			bool isWalking = Input.Down( InputButton.Walk ) && (bool)MoveProp["CanWalk"];
 			bool isRunning = Input.Down( InputButton.Run ) && (bool)MoveProp["CanRun"];
-			float walkSpeed = isWalking ? (float)MoveProp["WalkSpeed"] : 
+			float walkSpeed = isWalking ? (float)MoveProp["WalkSpeed"] :
 							(isRunning ? (float)MoveProp["RunSpeed"] :
 							defaultSpeed);
 
@@ -109,8 +108,8 @@ namespace Momentum
 
 			var pm = TraceBBox( vBumpOrigin, point, 4.0f );
 
-			if ( pm.Entity == null || 
-				Vector3.GetAngle( Vector3.Up, pm.Normal ) > 
+			if ( pm.Entity == null ||
+				Vector3.GetAngle( Vector3.Up, pm.Normal ) >
 				(float)MoveProp["StandableAngle"] )
 			{
 				ClearGroundEntity();
@@ -376,7 +375,7 @@ namespace Momentum
 				if ( (bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
 
-				Player.Water.Simulate(Client);
+				Player.Water.Simulate( Client );
 				CategorizePosition( OnGround() );
 
 				if ( OnGround() )

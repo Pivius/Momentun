@@ -2,7 +2,6 @@ using Sandbox;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Momentum;
 
 namespace Momentum.Entities
 {
@@ -15,7 +14,7 @@ namespace Momentum.Entities
 	}
 
 	public partial class BaseZoneTrigger : BaseTrigger
-    {
+	{
 		public int Id = 1;
 		public string ZoneName;
 		internal readonly ZONE_MODE Mode = 0;
@@ -51,20 +50,20 @@ namespace Momentum.Entities
 	{
 		public override void Touch( Entity ent )
 		{
-			if ( ent is not MomentumPlayer ) 
+			if ( ent is not MomentumPlayer )
 				return;
 
 			MomentumPlayer player = (MomentumPlayer)ent;
 
-			if ( (Mode is ZONE_MODE.INAIR && player.GroundEntity is null) || 
-				( Mode is ZONE_MODE.GROUNDED && player.GroundEntity is not null ) )
+			if ( (Mode is ZONE_MODE.INAIR && player.GroundEntity is null) ||
+				(Mode is ZONE_MODE.GROUNDED && player.GroundEntity is not null) )
 			{
 				base.EndTouch( ent );
 				player.ZoneTouchEnd( this );
 
 				return;
 			}
-			else if ( Mode is ZONE_MODE.SURFING)
+			else if ( Mode is ZONE_MODE.SURFING )
 			{
 				Vector3 position = player.Position;
 				TraceResult trace = TraceUtil.PlayerBBox( position,
@@ -72,7 +71,7 @@ namespace Momentum.Entities
 											(BaseController)player.Controller );
 				var normal = Vector3.GetAngle( Vector3.Up, trace.Normal );
 
-				if ( normal > (float)player.MovementProps["StandableAngle"] || normal == 0)
+				if ( normal > (float)player.MovementProps["StandableAngle"] || normal == 0 )
 				{
 					base.EndTouch( ent );
 					player.ZoneTouchEnd( this );

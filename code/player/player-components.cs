@@ -11,8 +11,8 @@ namespace Momentum
 
 		public void CreateNewComponents()
 		{
-			Water = new() {Player = this};
-			Duck = new() {Player = this};
+			Water = new() { Player = this };
+			Duck = new() { Player = this };
 		}
-    }
+	}
 }

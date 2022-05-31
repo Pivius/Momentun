@@ -6,7 +6,7 @@ namespace Momentum
 {
 	public partial class MomentumPlayer : Player
 	{
-        public List<ZoneTrigger> ZoneOrder = new();
+		public List<ZoneTrigger> ZoneOrder = new();
 		public List<string> ZoneOrderStatus = new();
 		public List<Vector3> ZoneOrderSpeed = new();
 		public List<float> ZoneOrderTime = new();

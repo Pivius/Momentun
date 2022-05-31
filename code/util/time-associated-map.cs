@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Momentum
 {
-	public class TimeAssociatedMap<T> : BaseNetworkable
+	public partial class TimeAssociatedMap<T> : BaseNetworkable
 	{
 		public Dictionary<float, T> Map { get; private set; } = new Dictionary<float, T>();
 		public float LastTime { get; private set; }
