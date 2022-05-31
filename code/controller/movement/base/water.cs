@@ -6,11 +6,11 @@ namespace Momentum
 	{
 		// # Source Water Movement
 
-		[Net, Predicted] 
+		[Net, Predicted]
 		public float JumpTime { get; set; }
-		[Net, Predicted] 
+		[Net, Predicted]
 		public Vector3 JumpVel { get; set; }
-		[Net, Predicted] 
+		[Net, Predicted]
 		public float EntryTime { get; set; }
 		[Net]
 		public float MaxJumpLedge { get; private set; } = 8.0f;
@@ -18,12 +18,12 @@ namespace Momentum
 		public float SinkSpeed { get; private set; } = 60.0f;
 		[Net]
 		public float JumpHeight { get; set; } = 256.0f;
-		[Net]
+		[Net, Predicted]
 		public new WATERLEVEL WaterLevel { get; set; } = 0;
-		[Net]
+		[Net, Predicted]
 		public WATERLEVEL OldWaterLevel { get; set; } = 0;
 
-		public virtual Vector3 CheckWaterJump( Vector3 velocity, Vector3 position)
+		public virtual Vector3 CheckWaterJump( Vector3 velocity, Vector3 position )
 		{
 			if ( JumpTime == 0 ) // Already water jumping.
 			{
@@ -166,7 +166,7 @@ namespace Momentum
 			}
 			else
 			{
-				
+
 				strafeVel.z += upSpeed + MathX.Clamp( forwardSpeed * forward.z * 2.0f, 0, maxSpeed );
 			}
 
@@ -209,7 +209,7 @@ namespace Momentum
 			float newSpeed = GetNewSpeed( speed,
 								(float)Controller.MoveProp["WaterFriction"],
 								ref velocity );
-			
+
 			float strafeVelLength = MathX.Clamp( strafeVel.Length, 0, (float)Controller.MoveProp["SwimSpeed"] );
 
 			// water acceleration
