@@ -54,11 +54,11 @@ namespace Momentum
 			MoveHelper mover = new( Position, Velocity );
 
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
-			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
+			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];	
 
-			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta );
+			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta);
 			var angle = trace.Normal.Angle( Vector3.Up );
-
+		
 			if ( angle >= mover.MaxStandableAngle && angle < 90 )
 				IsSurfing = true;
 			else
@@ -66,7 +66,7 @@ namespace Momentum
 
 			if ( IsSurfing )
 			{
-				SurfAccelerate.Move(
+				SurfAccelerate.Move( 
 					ref velocity,
 					WishVelocity,
 					(float)MoveProp["MaxSpeed"],
@@ -98,6 +98,8 @@ namespace Momentum
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
+			mover.TryMoveWithStep( Time.Delta, (float)MoveProp["StepSize"] );
+
 			Position = mover.Position;
 			Velocity = mover.Velocity;
 			TryPlayerClip( in primalVelocity );
@@ -105,6 +107,7 @@ namespace Momentum
 
 		public override void CheckJumpButton()
 		{
+
 			if ( Player.Water.JumpTime > 0.0f )
 			{
 				Player.Water.JumpTime -= Time.Delta;
@@ -155,7 +158,7 @@ namespace Momentum
 		{
 			if ( StartMove() )
 				return;
-
+			
 			if ( SetupMove() )
 				return;
 

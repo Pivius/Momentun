@@ -114,7 +114,7 @@ namespace Momentum
 			{
 				ClearGroundEntity();
 				bMoveToEndPos = false;
-
+				
 				if ( Velocity.z > 0 )
 					SurfaceFriction = 0.25f;
 			}
@@ -140,7 +140,7 @@ namespace Momentum
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
 			mover.TryMoveWithStep( Time.Delta, (float)MoveProp["StepSize"] );
-
+			
 			Position = mover.Position;
 			Velocity = mover.Velocity;
 		}
@@ -160,9 +160,11 @@ namespace Momentum
 
 			var trace = mover.TraceFromTo( Position, Position );
 			var angle = trace.Normal.Angle( Vector3.Up );
-
+			
 			if ( angle < mover.MaxStandableAngle && angle > 0 )
+			{
 				IsSurfing = true;
+			}
 			else
 				IsSurfing = false;
 
