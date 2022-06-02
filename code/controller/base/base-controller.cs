@@ -11,6 +11,8 @@ namespace Momentum
 		public Vector3 OBBMins { get; set; } = new Vector3( -16, -16, 0 );
 		public Vector3 OBBMaxs { get; set; } = new Vector3( 16, 16, 72 );
 		public Vector3 OldVelocity { get; set; }
+		[Net, Predicted]
+		public bool IsSurfing { get; set; }
 
 		public BaseController()
 		{

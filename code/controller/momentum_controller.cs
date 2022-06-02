@@ -11,10 +11,13 @@ namespace Momentum
 		[Net, Predicted]
 		public TimeSince ClipTime { get; set; }
 		public TimeAssociatedMap<bool> ShouldClip { get; set; }
+		[Net, Predicted]
+		public AirAccelerate SurfAccelerate { get; set; }
 
 		public MomentumController()
 		{
 			AirAccelerate = new QuakeAirAccelerate();
+			SurfAccelerate = new AirAccelerate();
 			ShouldClip = new TimeAssociatedMap<bool>( 1f, GetShouldClip );
 		}
 
@@ -40,6 +43,7 @@ namespace Momentum
 		public override void TryPlayerMove()
 		{
 			var primalVelocity = Velocity;
+
 			base.TryPlayerMove();
 			TryPlayerClip( in primalVelocity );
 		}
@@ -47,17 +51,41 @@ namespace Momentum
 		public override void AirMove()
 		{
 			var velocity = Velocity;
-			AirAccelerate.Move( ref velocity,
-						WishVelocity,
-						(float)MoveProp["MaxSpeed"],
-						(float)MoveProp["SideStrafeMaxSpeed"],
-						(float)MoveProp["AirAccelerate"],
-						(float)MoveProp["StrafeAcceleration"],
-						(float)MoveProp["AirStopAcceleration"],
-						(float)MoveProp["AirControl"] );
+			MoveHelper mover = new( Position, Velocity );
+
+			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
+			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
+
+			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta );
+			var angle = trace.Normal.Angle( Vector3.Up );
+
+			if ( angle >= mover.MaxStandableAngle && angle < 90 )
+				IsSurfing = true;
+			else
+				IsSurfing = false;
+
+			if ( IsSurfing )
+			{
+				SurfAccelerate.Move(
+					ref velocity,
+					WishVelocity,
+					(float)MoveProp["MaxSpeed"],
+					(float)MoveProp["SurfAccelerate"] );
+			}
+			else
+			{
+				AirAccelerate.Move(
+					ref velocity,
+					WishVelocity,
+					(float)MoveProp["MaxSpeed"],
+					(float)MoveProp["SideStrafeMaxSpeed"],
+					(float)MoveProp["AirAccelerate"],
+					(float)MoveProp["StrafeAcceleration"],
+					(float)MoveProp["AirStopAcceleration"],
+					(float)MoveProp["AirControl"] );
+			}
 			Velocity = velocity;
 			Velocity += BaseVelocity;
-			//TryPlayerMove();
 			StepMove();
 			Velocity -= BaseVelocity;
 		}
@@ -70,8 +98,6 @@ namespace Momentum
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
-			mover.TryMoveWithStep( Time.Delta, (float)MoveProp["StepSize"] );
-
 			Position = mover.Position;
 			Velocity = mover.Velocity;
 			TryPlayerClip( in primalVelocity );
@@ -79,7 +105,6 @@ namespace Momentum
 
 		public override void CheckJumpButton()
 		{
-
 			if ( Player.Water.JumpTime > 0.0f )
 			{
 				Player.Water.JumpTime -= Time.Delta;
@@ -135,6 +160,8 @@ namespace Momentum
 				return;
 
 			EndMove();
+
+			Player.Walljump.Simulate( Client );
 		}
 
 	}

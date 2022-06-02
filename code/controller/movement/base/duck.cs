@@ -274,7 +274,7 @@ namespace Momentum
 
 			if ( !inAir && inDuck && InDuckJump )
 				InDuckJump = false;
-			DebugOverlay.ScreenText( IsDucked.ToString() );
+
 			if ( duckButton || IsDucking || inDuck || duckJump )
 			{
 				if ( duckButton || duckJump )

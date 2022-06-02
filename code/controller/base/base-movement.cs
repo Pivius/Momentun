@@ -107,10 +107,10 @@ namespace Momentum
 			}
 
 			var pm = TraceBBox( vBumpOrigin, point, 4.0f );
+			var angle = Vector3.GetAngle( Vector3.Up, pm.Normal );
 
 			if ( pm.Entity == null ||
-				Vector3.GetAngle( Vector3.Up, pm.Normal ) >
-				(float)MoveProp["StandableAngle"] )
+				angle > (float)MoveProp["StandableAngle"] )
 			{
 				ClearGroundEntity();
 				bMoveToEndPos = false;
@@ -121,6 +121,7 @@ namespace Momentum
 			else
 			{
 				base.UpdateGroundEntity( pm );
+				IsSurfing = false;
 			}
 
 			if ( bMoveToEndPos && !pm.StartedSolid && pm.Fraction > 0.0f && pm.Fraction < 1.0f )
@@ -156,6 +157,14 @@ namespace Momentum
 			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
 			mover.TryMove( Time.Delta );
+
+			var trace = mover.TraceFromTo( Position, Position );
+			var angle = trace.Normal.Angle( Vector3.Up );
+
+			if ( angle < mover.MaxStandableAngle && angle > 0 )
+				IsSurfing = true;
+			else
+				IsSurfing = false;
 
 			Position = mover.Position;
 			Velocity = mover.Velocity;
