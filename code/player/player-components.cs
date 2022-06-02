@@ -8,11 +8,13 @@ namespace Momentum
 		public Water Water { get; set; }
 		[Net, Predicted]
 		public Duck Duck { get; set; }
-
+		[Net, Predicted]
+		public Walljump Walljump { get; set; }
 		public void CreateNewComponents()
 		{
 			Water = new() { Player = this };
 			Duck = new() { Player = this };
+			Walljump = new() { Player = this };
 		}
 	}
 }
