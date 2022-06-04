@@ -68,7 +68,7 @@ namespace Momentum
 			Vector3 traceDirection = new Vector3( -right.y, right.x, 0 );
 			TraceResult trace = Trace( traceDirection );
 			float angle = Vector3.GetAngle( traceDirection, trace.Normal );
-			InputButton button = InputButton.SecondaryAttack;
+			var button = InputButton.SecondaryAttack;
 			bool shouldStick = TimeSinceStick <= StickTime;
 			bool traceHit = trace.Hit;
 
@@ -80,7 +80,7 @@ namespace Momentum
 				angle <= MaxAngle &&
 				traceHit &&
 				Controller.Velocity.WithZ( 0 ).Length > 100 &&
-				shouldStick )
+				!shouldStick )
 			{
 				Vector3 velDir = Controller.Velocity.Normal.WithZ( 0 );
 
