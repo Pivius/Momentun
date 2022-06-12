@@ -35,7 +35,7 @@ namespace Momentum
 
 				["CanAirStrafe"] = true,
 				["AirAccelerate"] = 1.0f,
-				["SurfAccelerate"] = 50f,
+				["SurfAccelerate"] = 500f,
 				["CanAccelerate"] = true,
 				["Accelerate"] = 15.0f,
 				["WaterAccelerate"] = 4.0f,
