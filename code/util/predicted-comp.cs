@@ -6,7 +6,7 @@ namespace Momentum
 	{
 		public MomentumPlayer Player
 		{
-			get => (MomentumPlayer)Owner;
+			get => Owner as MomentumPlayer;
 			set => SetOwner( value );
 		}
 
@@ -16,7 +16,7 @@ namespace Momentum
 		{
 			Owner = player;
 			Parent = player;
-			Controller = (MomentumController)((MomentumPlayer)player).Controller;
+			Controller = (player as MomentumPlayer).Controller as MomentumController;
 		}
 
 		public override void Spawn()

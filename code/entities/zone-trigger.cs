@@ -53,7 +53,7 @@ namespace Momentum.Entities
 			if ( ent is not MomentumPlayer )
 				return;
 
-			MomentumPlayer player = (MomentumPlayer)ent;
+			MomentumPlayer player = ent as MomentumPlayer;
 
 			if ( (Mode is ZONE_MODE.INAIR && player.GroundEntity is null) ||
 				(Mode is ZONE_MODE.GROUNDED && player.GroundEntity is not null) )
@@ -89,7 +89,7 @@ namespace Momentum.Entities
 			if ( ent is not MomentumPlayer )
 				return;
 
-			MomentumPlayer player = (MomentumPlayer)ent;
+			MomentumPlayer player = ent as MomentumPlayer;
 
 			base.Touch( ent );
 			player.ZoneTouchEnd( this );

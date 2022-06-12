@@ -23,7 +23,7 @@ namespace Momentum
 			Unstuck = new Unstuck( this );
 		}
 
-		public MomentumPlayer Player => (MomentumPlayer)Pawn;
+		public MomentumPlayer Player => Pawn as MomentumPlayer;
 		public Property MoveProp => Player.MovementProps;
 		public Property ViewProp => Player.ViewProps;
 

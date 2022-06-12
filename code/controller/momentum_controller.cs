@@ -26,7 +26,7 @@ namespace Momentum
 			if ( Player.IsServer )
 				return ClipTime <= (float)MoveProp["ClipTime"];
 			else
-				return (ClipTime <= (float)MoveProp["ClipTime"]);
+				return ClipTime <= (float)MoveProp["ClipTime"];
 		}
 
 		public virtual void TryPlayerClip( in Vector3 primalVelocity )
@@ -54,19 +54,22 @@ namespace Momentum
 			MoveHelper mover = new( Position, Velocity );
 
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
-			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];	
+			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
 
-			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta);
+			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta );
 			var angle = trace.Normal.Angle( Vector3.Up );
-		
+
 			if ( angle >= mover.MaxStandableAngle && angle < 90 )
+			{
 				IsSurfing = true;
+				Player.Duck.JumpTime = Player.Duck.JumpingTime;
+			}
 			else
 				IsSurfing = false;
 
 			if ( IsSurfing )
 			{
-				SurfAccelerate.Move( 
+				SurfAccelerate.Move(
 					ref velocity,
 					WishVelocity,
 					(float)MoveProp["MaxSpeed"],
@@ -158,7 +161,7 @@ namespace Momentum
 		{
 			if ( StartMove() )
 				return;
-			
+
 			if ( SetupMove() )
 				return;
 
