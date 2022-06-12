@@ -19,6 +19,7 @@ namespace Momentum
 			StyleSheet.Load( "/ui/hud/module.scss" );
 			InitContainers();
 			GetContainer( "BottomLeft" ).NewElement<Velocity>( "Velocity" );
+			GetContainer( "BottomCenter" ).NewElement<CGaz>( "CGaz" );
 		}
 
 		public void NewElement<T>( string identifier = null ) where T : Elements, new()

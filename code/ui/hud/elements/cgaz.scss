@@ -1,0 +1,47 @@
+cgaz {
+	position: absolute;
+	display: flex;
+	background-color: rgba( black, 0.75 );
+	border-radius: 3px;
+	bottom: 48px;
+	font-size: 40px;
+	font-weight: bold;
+	width: 100%;
+	height: 10px;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+
+}
+
+.rad {
+    position:absolute;
+	background-color: rgba( #deb41e, 1 );
+	height: 7px;
+    bottom: 1px;
+}
+
+.opt {
+    position:absolute;
+	background-color: rgba( #21de1e, 1 );
+    height: 7px;
+    bottom: 1px;
+}
+
+.max {
+    position:absolute;
+	background-color: rgba( #1e78de, 1 );
+    height: 7px;
+    bottom: 1px;
+}
+
+.center {
+    position:absolute;
+	background-color: rgba( white, 1 );
+    border: 1px;
+    border-color: rgba(black, 1);
+    height: 30px;
+    width: 4px;
+    border-radius: 3px;
+}
