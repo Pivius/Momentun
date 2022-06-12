@@ -6,7 +6,7 @@ namespace Momentum
 {
 	public partial class CGaz : Elements
 	{
-		private float EyeYaw;
+		private float MoveAngle;
 		private float PrevSpeedSqr;
 		private float SpeedSqr;
 		private float WishSpeed;
@@ -18,12 +18,14 @@ namespace Momentum
 		private float DrawOpt;
 		private float DrawMaxCos;
 		private float DrawMax;
+		private bool DrawVel;
 		private float BarOptWidth = 0;
 		private float BarOptPosition = 0;
 		private float BarMaxWidth = 0;
 		private float BarMaxPosition = 0;
 		private float BarMaxCosWidth = 0;
 		private float BarMaxCosPosition = 0;
+		private bool MovingBackwards = false;
 		private Vector3 PrevVelocity;
 
 		private Panel MaxCos;
@@ -58,7 +60,7 @@ namespace Momentum
 			DrawMaxCos = UpdateDrawMaxCos( DrawOpt );
 			DrawMax = UpdateDrawMax( DrawMaxCos );
 
-			//drawVel = MathF.Atan2( player.Velocity.y, player.Velocity.x );
+			//DrawVel = MathF.Atan2( velocity.y, velocity.x );
 		}
 
 		private float UpdateDrawMin()
@@ -127,9 +129,9 @@ namespace Momentum
 
 			return (minAngle, optAngle, maxAngle, maxCosAngle);
 		}
-		private void DrawHalfStrafe()
+
+		private void DrawStrafeAngles()
 		{
-			bool drawVel = false;
 			float scale = 5f;
 			float minAngle = 0f;
 			float optAngle = 0f;
@@ -139,83 +141,176 @@ namespace Momentum
 			bool rightBtnDown = Input.Down( InputButton.Right );
 			bool leftBtnDown = Input.Down( InputButton.Left );
 			float barWidth = Style.Width.Value.Value;
+			bool isBarRightSide = false;
 
-			if ( (Input.Down( InputButton.Forward ) || Input.Down( InputButton.Back )) && (leftBtnDown || rightBtnDown) )
+			if ( (leftBtnDown || rightBtnDown) && !(leftBtnDown && rightBtnDown) )
 			{
-				var angles = leftBtnDown ? GetAngles( EyeYaw, scale ) : GetAngles( EyeYaw, scale, true );
+				var angles = leftBtnDown ? GetAngles( MoveAngle, scale ) : GetAngles( MoveAngle, scale, true );
 
-				drawVel = true;
+				if ( MovingBackwards )
+				{
+					angles = (leftBtnDown && MovingBackwards) ? GetAngles( MoveAngle, scale, true ) : GetAngles( MoveAngle, scale, false );
+				}
+
+				DrawVel = true;
+				isBarRightSide = (rightBtnDown && !MovingBackwards) || (leftBtnDown && MovingBackwards);
 				minAngle = angles.min;
 				optAngle = angles.opt;
 				maxAngle = angles.max;
 				maxCosAngle = angles.maxCos;
+
+				if ( MathX.RadianToDegree( DrawMin ) < MathX.RadianToDegree( MoveAngle ) )
+				{
+					minAngle = -minAngle;
+				}
+
+				if ( MathX.RadianToDegree( DrawOpt ) < MathX.RadianToDegree( MoveAngle ) )
+				{
+					optAngle = -optAngle;
+				}
+
+				if ( MathX.RadianToDegree( DrawMax ) < MathX.RadianToDegree( MoveAngle ) )
+				{
+					maxAngle = -maxAngle;
+				}
+
+				if ( MathX.RadianToDegree( DrawMaxCos ) < MathX.RadianToDegree( MoveAngle ) )
+				{
+					maxCosAngle = -maxCosAngle;
+				}
+
+				BarOptPosition = InterpFunctions.Linear(
+					BarOptPosition,
+					(barWidth / 2 - (isBarRightSide ? minAngle : optAngle)) - BarOptPosition,
+					Time.Delta,
+					duration );
+
+				BarOptWidth = InterpFunctions.Linear(
+					BarOptWidth,
+					(barWidth / 2 - (isBarRightSide ? optAngle : minAngle)) - (barWidth / 2 - (isBarRightSide ? minAngle : optAngle)) - BarOptWidth,
+					Time.Delta,
+					duration );
+
+				BarMaxPosition = InterpFunctions.Linear(
+					BarMaxPosition, (barWidth / 2 - (isBarRightSide ? optAngle : maxCosAngle)) - BarMaxPosition,
+					Time.Delta,
+					duration );
+
+				BarMaxWidth = InterpFunctions.Linear( BarMaxWidth,
+					(barWidth / 2 - (isBarRightSide ? maxCosAngle : optAngle)) - (barWidth / 2 - (isBarRightSide ? optAngle : maxCosAngle)) - BarMaxWidth,
+					Time.Delta,
+					duration );
+
+				BarMaxCosPosition = InterpFunctions.Linear(
+					BarMaxCosPosition,
+					(barWidth / 2 - (isBarRightSide ? maxCosAngle : maxAngle)) - BarMaxCosPosition,
+					Time.Delta,
+					duration );
+
+				BarMaxCosWidth = InterpFunctions.Linear(
+					BarMaxCosWidth,
+					(barWidth / 2 - (isBarRightSide ? maxAngle : maxCosAngle)) - (barWidth / 2 - (isBarRightSide ? maxCosAngle : maxAngle)) - BarMaxCosWidth,
+					Time.Delta,
+					duration );
+			}
+			else
+			{
+				DrawVel = false;
+			}
+		}
+
+		public override void Tick()
+		{
+			MomentumPlayer player = Local.Pawn as MomentumPlayer;
+
+			if ( player == null ) return;
+
+			Vector3 velocity = player.Velocity;
+			float barWidth = 500f;
+			float maxSpeed = (float)player.MovementProps["MaxSpeed"];
+			float accelerate = (float)player.MovementProps["StrafeAcceleration"];
+			Vector3 eyeAngles = player.EyeRotation.Right;
+
+			eyeAngles = new Vector3( -eyeAngles.y, eyeAngles.x );
+
+			if (Input.Forward == 0 && Input.Left != 0)
+			{
+				maxSpeed = (float)player.MovementProps["SideStrafeMaxSpeed"];
+
+				if (((MomentumController)player.Controller).IsSurfing)
+				{
+					maxSpeed = (float)player.MovementProps["MaxSpeed"]/10f;
+					accelerate = (float)player.MovementProps["SurfAccelerate"];
+				}
 			}
 
-			if ( MathX.RadianToDegree( DrawMin ) < MathX.RadianToDegree( EyeYaw ) )
+			if ( player.Velocity.WithZ(0).Dot( eyeAngles ) < 0)
 			{
-				minAngle = -minAngle;
+				MovingBackwards = true;
+			}
+			else
+			{
+				MovingBackwards = false;
 			}
 
-			if ( MathX.RadianToDegree( DrawOpt ) < MathX.RadianToDegree( EyeYaw ) )
+			Style.Width = barWidth;
+
+			
+			MoveAngle = MathX.DegreeToRadian( velocity.WithZ( 0 ).Angle( player.Controller.WishVelocity.WithZ( 0 ).Normal ) );
+			UpdateDraw( velocity, maxSpeed, accelerate );
+			DrawStrafeAngles();
+
+			//var length = 100;
+
+			//DebugOverlay.Line( player.Position, player.Position + player.Controller.WishVelocity.Normal * length, Color.Red, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawMin ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Green, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawOpt ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Blue, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawMax ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Yellow, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawMaxCos ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Cyan, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawVel ) ).Forward * length, Color.White, 0, false );
+
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawMin ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Green, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawOpt ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Blue, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawMax ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Yellow, 0, false );
+			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawMaxCos ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Cyan, 0, false );
+
+			if ( !DrawVel )
 			{
-				optAngle = -optAngle;
-			}
+				var duration = 0.1f;
 
-			if ( MathX.RadianToDegree( DrawMax ) < MathX.RadianToDegree( EyeYaw ) )
-			{
-				maxAngle = -maxAngle;
-			}
+				BarOptPosition = InterpFunctions.Linear(
+					BarOptPosition,
+					(barWidth / 2) - BarOptPosition,
+					Time.Delta,
+					duration * 0.5f );
 
-			if ( MathX.RadianToDegree( DrawMaxCos ) < MathX.RadianToDegree( EyeYaw ) )
-			{
-				maxCosAngle = -maxCosAngle;
-			}
+				BarOptWidth = InterpFunctions.Linear(
+					BarOptWidth,
+					0 - BarOptWidth,
+					Time.Delta,
+					duration * 0.5f );
 
-			BarOptPosition = InterpFunctions.Linear(
-				BarOptPosition,
-				(barWidth / 2 - (rightBtnDown ? minAngle : optAngle)) - BarOptPosition,
-				Time.Delta,
-				duration );
+				BarMaxPosition = InterpFunctions.Linear(
+					BarMaxPosition,
+					(barWidth / 2) - BarMaxPosition,
+					Time.Delta,
+					duration * 0.5f );
+				BarMaxWidth = InterpFunctions.Linear(
+					BarMaxWidth,
+					0 - BarMaxWidth,
+					Time.Delta,
+					duration * 0.5f );
 
-			BarOptWidth = InterpFunctions.Linear(
-				BarOptWidth,
-				(barWidth / 2 - (rightBtnDown ? optAngle : minAngle)) - (barWidth / 2 - (rightBtnDown ? minAngle : optAngle)) - BarOptWidth,
-				Time.Delta,
-				duration );
-
-			BarMaxPosition = InterpFunctions.Linear(
-				BarMaxPosition, (barWidth / 2 - (rightBtnDown ? optAngle : maxCosAngle)) - BarMaxPosition,
-				Time.Delta,
-				duration );
-
-			BarMaxWidth = InterpFunctions.Linear( BarMaxWidth,
-				(barWidth / 2 - (rightBtnDown ? maxCosAngle : optAngle)) - (barWidth / 2 - (rightBtnDown ? optAngle : maxCosAngle)) - BarMaxWidth,
-				Time.Delta,
-				duration );
-
-			BarMaxCosPosition = InterpFunctions.Linear(
-				BarMaxCosPosition,
-				(barWidth / 2 - (rightBtnDown ? maxCosAngle : maxAngle)) - BarMaxCosPosition,
-				Time.Delta,
-				duration );
-
-			BarMaxCosWidth = InterpFunctions.Linear(
-				BarMaxCosWidth,
-				(barWidth / 2 - (rightBtnDown ? maxAngle : maxCosAngle)) - (barWidth / 2 - (rightBtnDown ? maxCosAngle : maxAngle)) - BarMaxCosWidth,
-				Time.Delta,
-				duration );
-
-
-			if ( !drawVel )
-			{
-				BarOptPosition = barWidth / 2;
-				BarOptWidth = 0;
-
-				BarMaxPosition = barWidth / 2;
-				BarMaxWidth = 0;
-
-				BarMaxCosPosition = barWidth / 2;
-				BarMaxCosWidth = 0;
+				BarMaxCosPosition = InterpFunctions.Linear(
+					BarMaxCosPosition,
+					(barWidth / 2) - BarMaxCosPosition,
+					Time.Delta,
+					duration * 0.5f );
+				BarMaxCosWidth = InterpFunctions.Linear(
+					BarMaxCosWidth,
+					0 - BarMaxCosWidth,
+					Time.Delta,
+					duration * 0.5f );
 
 				Opt.Style.Left = BarOptPosition;
 				Opt.Style.Width = BarOptWidth;
@@ -235,37 +330,6 @@ namespace Momentum
 
 			MaxCos.Style.Left = BarMaxCosPosition;
 			MaxCos.Style.Width = BarMaxCosWidth;
-		}
-
-		public override void Tick()
-		{
-			var player = (MomentumPlayer)Local.Pawn;
-
-			if ( player == null ) return;
-
-			Vector3 velocity = player.Velocity;
-			float barWidth = 500f;
-
-			EyeYaw = MathX.DegreeToRadian( velocity.WithZ( 0 ).Angle( player.Controller.WishVelocity.WithZ( 0 ).Normal ) );
-			UpdateDraw( velocity, (float)player.MovementProps["MaxSpeed"], (float)player.MovementProps["StrafeAcceleration"] );
-			Style.Width = barWidth;
-
-			DrawHalfStrafe();
-
-			//var length = 100;
-
-			//DebugOverlay.Line( player.Position, player.Position + player.Controller.WishVelocity.Normal * length, Color.Red, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawMin ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Green, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawOpt ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Blue, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawMax ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Yellow, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawMaxCos ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Cyan, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( drawVel ) ).Forward * length, Color.White, 0, false );
-
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawMin ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Green, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawOpt ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Blue, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawMax ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Yellow, 0, false );
-			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -drawMaxCos ) + MathX.RadianToDegree( drawVel ) ).Forward * length, Color.Cyan, 0, false );
-
 
 			PrevVelocity = player.Velocity;
 		}
