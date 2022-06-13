@@ -227,20 +227,20 @@ namespace Momentum
 
 			Vector3 velocity = player.Velocity;
 			float barWidth = 500f;
-			float maxSpeed = (float)player.MovementProps["MaxSpeed"];
-			float accelerate = (float)player.MovementProps["StrafeAcceleration"];
+			float maxSpeed = player.Properties.MaxSpeed;
+			float accelerate = player.Properties.StrafeAcceleration;
 			Vector3 eyeAngles = player.EyeRotation.Right;
 
 			eyeAngles = new Vector3( -eyeAngles.y, eyeAngles.x );
 
 			if (Input.Forward == 0 && Input.Left != 0)
 			{
-				maxSpeed = (float)player.MovementProps["SideStrafeMaxSpeed"];
+				maxSpeed = player.Properties.SideStrafeMaxSpeed;
 
 				if (((MomentumController)player.Controller).IsSurfing)
 				{
-					maxSpeed = (float)player.MovementProps["MaxSpeed"]/10f;
-					accelerate = (float)player.MovementProps["SurfAccelerate"];
+					maxSpeed = player.Properties.MaxSpeed/10f;
+					accelerate = player.Properties.SurfAccelerate;
 				}
 			}
 

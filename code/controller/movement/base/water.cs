@@ -198,7 +198,7 @@ namespace Momentum
 
 		public override void Simulate()
 		{
-			var strafeVel = GetSwimVel( (float)Controller.MoveProp["MaxSpeed"], Player.KeyDown( InputButton.Jump ) );
+			var strafeVel = GetSwimVel( Player.Properties.MaxSpeed, Player.KeyDown( InputButton.Jump ) );
 			Vector3 velocity = Controller.Velocity;
 			Vector3 position = Controller.Position;
 			Vector3 strafeDir = strafeVel.Normal;
@@ -207,10 +207,10 @@ namespace Momentum
 			TraceResult trace;
 			float speed = velocity.Length;
 			float newSpeed = GetNewSpeed( speed,
-								(float)Controller.MoveProp["WaterFriction"],
+								Player.Properties.WaterFriction,
 								ref velocity );
 
-			float strafeVelLength = MathX.Clamp( strafeVel.Length, 0, (float)Controller.MoveProp["SwimSpeed"] );
+			float strafeVelLength = MathX.Clamp( strafeVel.Length, 0, Player.Properties.SwimSpeed );
 
 			// water acceleration
 			if ( strafeVelLength >= 0.1f )
@@ -220,7 +220,7 @@ namespace Momentum
 				if ( addSpeed <= 0 )
 					addSpeed = strafeVelLength - newSpeed - velocity.Dot( strafeDir );
 
-				float accelSpeed = MathX.Clamp( (float)Controller.MoveProp["WaterAccelerate"]
+				float accelSpeed = MathX.Clamp( Player.Properties.WaterAccelerate
 										* strafeVelLength
 										* Time.Delta, 0, addSpeed );
 				velocity += accelSpeed * strafeDir;
@@ -234,8 +234,8 @@ namespace Momentum
 			{
 				startTrace = endTrace;
 
-				if ( (bool)Controller.MoveProp["AllowAutoMovement"] )
-					startTrace.WithZ( startTrace.z + (float)Controller.MoveProp["StepSize"] + 1 );
+				if ( Player.Properties.AllowAutoMovement )
+					startTrace.WithZ( startTrace.z + Player.Properties.StepSize + 1 );
 
 				trace = TraceUtil.PlayerBBox( startTrace, endTrace, Controller );
 

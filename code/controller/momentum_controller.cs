@@ -24,9 +24,9 @@ namespace Momentum
 		public bool GetShouldClip()
 		{
 			if ( Player.IsServer )
-				return ClipTime <= (float)MoveProp["ClipTime"];
+				return ClipTime <= Player.Properties.ClipTime;
 			else
-				return ClipTime <= (float)MoveProp["ClipTime"];
+				return ClipTime <= Player.Properties.ClipTime;
 		}
 
 		public virtual void TryPlayerClip( in Vector3 primalVelocity )
@@ -54,7 +54,7 @@ namespace Momentum
 			MoveHelper mover = new( Position, Velocity );
 
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
-			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
+			mover.MaxStandableAngle = Player.Properties.StandableAngle;
 
 			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta );
 			var angle = trace.Normal.Angle( Vector3.Up );
@@ -72,20 +72,20 @@ namespace Momentum
 				SurfAccelerate.Move(
 					ref velocity,
 					WishVelocity,
-					(float)MoveProp["MaxSpeed"],
-					(float)MoveProp["SurfAccelerate"] );
+					Player.Properties.MaxSpeed,
+					Player.Properties.SurfAccelerate );
 			}
 			else
 			{
 				AirAccelerate.Move(
 					ref velocity,
 					WishVelocity,
-					(float)MoveProp["MaxSpeed"],
-					(float)MoveProp["SideStrafeMaxSpeed"],
-					(float)MoveProp["AirAccelerate"],
-					(float)MoveProp["StrafeAcceleration"],
-					(float)MoveProp["AirStopAcceleration"],
-					(float)MoveProp["AirControl"] );
+					Player.Properties.MaxSpeed,
+					Player.Properties.SideStrafeMaxSpeed,
+					Player.Properties.AirAccelerate,
+					Player.Properties.StrafeAcceleration,
+					Player.Properties.AirStopAcceleration,
+					Player.Properties.AirControl );
 			}
 			Velocity = velocity;
 			Velocity += BaseVelocity;
@@ -99,9 +99,9 @@ namespace Momentum
 
 			MoveHelper mover = new( Position, Velocity );
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
-			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
+			mover.MaxStandableAngle = Player.Properties.StandableAngle;
 
-			mover.TryMoveWithStep( Time.Delta, (float)MoveProp["StepSize"] );
+			mover.TryMoveWithStep( Time.Delta, Player.Properties.StepSize );
 
 			Position = mover.Position;
 			Velocity = mover.Velocity;
@@ -133,13 +133,13 @@ namespace Momentum
 
 			ClearGroundEntity();
 
-			float jumpVelocity = (float)MoveProp["JumpPower"];
+			float jumpVelocity = Player.Properties.JumpPower;
 
-			if ( (float)MoveProp["DoubleJumpZ"] != 0 )
+			if ( Player.Properties.DoubleJumpZ != 0 )
 			{
 				if ( DoubleJumpTime <= 0.4f )
 				{
-					jumpVelocity += (float)MoveProp["DoubleJumpZ"];
+					jumpVelocity += Player.Properties.DoubleJumpZ;
 					DoubleJumped = true;
 				}
 
@@ -148,7 +148,7 @@ namespace Momentum
 				ClipTime = 0;
 			}
 
-			Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ( jumpVelocity ) );
+			Velocity = Gravity.AddGravity( Player.Properties.Gravity * 0.5f, Velocity.WithZ( jumpVelocity ) );
 			AddEvent( "jump" );
 
 			Player.Duck.JumpTime = Player.Duck.JumpingTime;

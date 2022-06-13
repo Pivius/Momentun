@@ -1,74 +1,105 @@
 using Sandbox;
-using System.Collections.Generic;
 
 namespace Momentum
 {
-	public partial class MomentumPlayer : Player
+	public partial class Properties : BaseNetworkable
 	{
-		public Property MovementProps = new(
-			new Dictionary<string, object>
-			{
-				// # Movement Properties
+		// # Movement Properties
 
-				["MaxSpeed"] = 300.0f,
-				["MaxMove"] = 10000.0f,
-				["CanWalk"] = false,
-				["CanRun"] = false,
-				["DefaultSpeed"] = 250.0f,
-				["RunSpeed"] = 250.0f,
-				["WalkSpeed"] = 250.0f,
-				["DuckedWalkSpeed"] = 150.0f,
-				["SwimSpeed"] = 250.0f,
-				["Gravity"] = 600.0f,
-				["JumpPower"] = 270.0f, //268.3281572999747f * 1.2f,
-				["StepSize"] = 18.0f,
-				["StandableAngle"] = 44.0f,
-				["FallDamageMultiplier"] = 0.0563f,
-				["ClipTime"] = 0.5f,
-				["AutoJump"] = true,
-				["AllowAutoMovement"] = true,
-				["MoveState"] = (STATE)0,
-				["DoubleJumpZ"] = 250f,
-				["RampJump"] = 2,
+		[Net]
+		public float MaxSpeed { get; set; } = 300f;
+		[Net]
+		public float MaxMove { get; set; } = 10000.0f;
+		[Net]
+		public bool CanWalk { get; set; } = false;
+		[Net]
+		public bool CanRun { get; set; } = false;
+		[Net]
+		public float DefaultSpeed { get; set; } = 250.0f;
+		[Net]
+		public float RunSpeed { get; set; } = 250.0f;
+		[Net]
+		public float WalkSpeed { get; set; } = 250.0f;
+		[Net]
+		public float DuckedWalkSpeed { get; set; } = 150.0f;
+		[Net]
+		public float SwimSpeed { get; set; } = 250.0f;
+		[Net]
+		public float Gravity { get; set; } = 600.0f;
+		[Net]
+		public float JumpPower { get; set; } = 270.0f;
+		[Net]
+		public float StepSize { get; set; } = 18.0f;
+		[Net]
+		public float StandableAngle { get; set; } = 44.0f;
+		[Net]
+		public float FallDamageMultiplier { get; set; } = 0.0563f;
+		[Net]
+		public float ClipTime { get; set; } = 0.5f;
+		[Net]
+		public bool AutoJump { get; set; } = true;
+		[Net]
+		public bool AllowAutoMovement { get; set; } = true;
+		[Net]
+		public STATE MoveState { get; set; } = STATE.GROUND;
+		[Net]
+		public float DoubleJumpZ { get; set; } = 250f;
+		[Net]
+		public int RampJump { get; set; } = 2;
 
-				// # Accelerate Properties
+		// # Accelerate Properties
 
-				["CanAirStrafe"] = true,
-				["AirAccelerate"] = 1.0f,
-				["SurfAccelerate"] = 500f,
-				["CanAccelerate"] = true,
-				["Accelerate"] = 15.0f,
-				["WaterAccelerate"] = 4.0f,
+		[Net]
+		public bool CanAirStrafe { get; set; } = true;
+		[Net]
+		public float AirAccelerate { get; set; } = 1.0f;
+		[Net]
+		public float SurfAccelerate { get; set; } = 500f;
+		[Net]
+		public bool CanAccelerate { get; set; } = true;
+		[Net]
+		public float Accelerate { get; set; } = 15.0f;
+		[Net]
+		public float WaterAccelerate { get; set; } = 4.0f;
 
+		// # Friction Properties
 
-				// # Friction Properties
-				["Friction"] = 8.0f,
-				["WaterFriction"] = 1.0f,
-				["StopSpeed"] = 100.0f,
+		[Net]
+		public float Friction { get; set; } = 8.0f;
+		[Net]
+		public float WaterFriction { get; set; } = 1.0f;
+		[Net]
+		public float StopSpeed { get; set; } = 100.0f;
 
-				// # Quake Properties
+		// # Quake Properties
 
-				["SideStrafeMaxSpeed"] = 30.0f,
-				["StrafeAcceleration"] = 70.0f,
-				["AirStopAcceleration"] = 2.5f,
-				["AirControl"] = 150.0f,
-			}
-		);
+		[Net]
+		public float SideStrafeMaxSpeed { get; set; } = 30.0f;
+		[Net]
+		public float StrafeAcceleration { get; set; } = 70.0f;
+		[Net]
+		public float AirStopAcceleration { get; set; } = 2.5f;
+		[Net]
+		public float AirControl { get; set; } = 150.0f;
 
-		public Property ViewProps = new(
-			new Dictionary<string, object>
-			{
-				["StandViewOffset"] = 64.0f,
-				["DuckViewOffset"] = 28.0f,
-				["DeadViewOffset"] = 14.0f,
+		// # Player View
 
-				// # Player Hulls
+		[Net]
+		public float StandViewOffset { get; set; } = 64.0f;
+		[Net]
+		public float DuckViewOffset { get; set; } = 28.0f;
+		[Net]
+		public float DeadViewOffset { get; set; } = 14.0f;
 
-				["StandMins"] = new Vector3( -16, -16, 0 ),
-				["StandMaxs"] = new Vector3( 16, 16, 72 ),
-				["DuckMins"] = new Vector3( -16, -16, 0 ),
-				["DuckMaxs"] = new Vector3( 16, 16, 32 ),
-			}
-		);
+		// # Player Hulls
+
+		[Net]
+		public Vector3 StandMins { get; set; } = new Vector3( -16, -16, 0 );
+		[Net]
+		public Vector3 StandMaxs { get; set; } = new Vector3( 16, 16, 72 );
+		[Net]
+		public Vector3 DuckMins { get; set; } = new Vector3( -16, -16, 0 );
+		[Net]
+		public Vector3 DuckMaxs { get; set; } = new Vector3( 16, 16, 32 );
 	}
 }

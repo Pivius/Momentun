@@ -24,8 +24,6 @@ namespace Momentum
 		}
 
 		public MomentumPlayer Player => Pawn as MomentumPlayer;
-		public Property MoveProp => Player.MovementProps;
-		public Property ViewProp => Player.ViewProps;
 
 		public override TraceResult TraceBBox( Vector3 start,
 										Vector3 end,
@@ -41,32 +39,32 @@ namespace Momentum
 
 		public virtual Vector3 GetPlayerMins( bool isDucked )
 		{
-			return isDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) :
-							((Vector3)ViewProp["StandMins"] * Pawn.Scale);
+			return isDucked ? (Player.Properties.DuckMins * Pawn.Scale) :
+							(Player.Properties.StandMins * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs( bool isDucked )
 		{
-			return isDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) :
-							((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
+			return isDucked ? (Player.Properties.DuckMaxs * Pawn.Scale) :
+							(Player.Properties.StandMaxs * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMins()
 		{
-			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMins"] * Pawn.Scale) :
-										((Vector3)ViewProp["StandMins"] * Pawn.Scale);
+			return Player.Duck.IsDucked ? (Player.Properties.DuckMins * Pawn.Scale) :
+										(Player.Properties.StandMins * Pawn.Scale);
 		}
 
 		public virtual Vector3 GetPlayerMaxs()
 		{
-			return Player.Duck.IsDucked ? ((Vector3)ViewProp["DuckMaxs"] * Pawn.Scale) :
-										((Vector3)ViewProp["StandMaxs"] * Pawn.Scale);
+			return Player.Duck.IsDucked ? (Player.Properties.DuckMaxs * Pawn.Scale) :
+										(Player.Properties.StandMaxs * Pawn.Scale);
 		}
 
 		public virtual float GetPlayerViewOffset( bool isDucked )
 		{
-			return isDucked ? ((float)ViewProp["DuckViewOffset"] * Pawn.Scale) :
-							((float)ViewProp["StandViewOffset"] * Pawn.Scale);
+			return isDucked ? (Player.Properties.DuckViewOffset * Pawn.Scale) :
+							(Player.Properties.StandViewOffset * Pawn.Scale);
 		}
 
 		public virtual float GetViewOffset()
@@ -96,7 +94,7 @@ namespace Momentum
 		public float FallDamage()
 		{
 			return MathF.Max( Velocity.z - 580.0f, 0 )
-				* (float)MoveProp["FallDamageMultiplier"];
+				* Player.Properties.FallDamageMultiplier;
 		}
 
 		public override void FrameSimulate()
@@ -104,7 +102,7 @@ namespace Momentum
 			base.FrameSimulate();
 
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
-			WishVelocity = WishVel( (float)MoveProp["MaxMove"] );
+			WishVelocity = WishVel( Player.Properties.MaxMove );
 		}
 
 		public override void Simulate()

@@ -13,14 +13,14 @@ namespace Momentum
 
 		public float GetWalkSpeed()
 		{
-			float defaultSpeed = (float)MoveProp["DefaultSpeed"];
-			bool isWalking = Input.Down( InputButton.Walk ) && (bool)MoveProp["CanWalk"];
-			bool isRunning = Input.Down( InputButton.Run ) && (bool)MoveProp["CanRun"];
-			float walkSpeed = isWalking ? (float)MoveProp["WalkSpeed"] :
-							(isRunning ? (float)MoveProp["RunSpeed"] :
+			float defaultSpeed = Player.Properties.DefaultSpeed;
+			bool isWalking = Input.Down( InputButton.Walk ) && Player.Properties.CanWalk;
+			bool isRunning = Input.Down( InputButton.Run ) && Player.Properties.CanRun;
+			float walkSpeed = isWalking ? Player.Properties.WalkSpeed :
+							(isRunning ? Player.Properties.RunSpeed :
 							defaultSpeed);
 
-			return Player.Duck.IsDucked ? walkSpeed * ((float)MoveProp["DuckedWalkSpeed"] / defaultSpeed) : walkSpeed;
+			return Player.Duck.IsDucked ? walkSpeed * (Player.Properties.DuckedWalkSpeed / defaultSpeed) : walkSpeed;
 		}
 
 		public static Vector3 WishVel( float strafeSpeed )
@@ -64,7 +64,7 @@ namespace Momentum
 			if ( normal.z < 1
 				&& Velocity.z <= 0
 				&& OnGround()
-				&& (STATE)MoveProp["MoveState"] == STATE.INAIR )
+				&& Player.Properties.MoveState == STATE.INAIR )
 			{
 				Velocity -= normal * Velocity.Dot( normal );
 
@@ -110,7 +110,7 @@ namespace Momentum
 			var angle = Vector3.GetAngle( Vector3.Up, pm.Normal );
 
 			if ( pm.Entity == null ||
-				angle > (float)MoveProp["StandableAngle"] )
+				angle > Player.Properties.StandableAngle )
 			{
 				ClearGroundEntity();
 				bMoveToEndPos = false;
@@ -137,9 +137,9 @@ namespace Momentum
 		{
 			MoveHelper mover = new( Position, Velocity );
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
-			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
+			mover.MaxStandableAngle = Player.Properties.StandableAngle;
 
-			mover.TryMoveWithStep( Time.Delta, (float)MoveProp["StepSize"] );
+			mover.TryMoveWithStep( Time.Delta, Player.Properties.StepSize );
 			
 			Position = mover.Position;
 			Velocity = mover.Velocity;
@@ -154,7 +154,7 @@ namespace Momentum
 
 			MoveHelper mover = new( Position, Velocity );
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
-			mover.MaxStandableAngle = (float)MoveProp["StandableAngle"];
+			mover.MaxStandableAngle = Player.Properties.StandableAngle;
 
 			mover.TryMove( Time.Delta );
 
@@ -178,8 +178,8 @@ namespace Momentum
 
 			AirAccelerate.Move( ref velocity,
 						WishVelocity,
-						(float)MoveProp["MaxSpeed"],
-						(float)MoveProp["AirAccelerate"] );
+						Player.Properties.MaxSpeed,
+						Player.Properties.AirAccelerate );
 			Velocity = velocity;
 			Velocity += BaseVelocity;
 			TryPlayerMove();
@@ -189,7 +189,7 @@ namespace Momentum
 		public override void StayOnGround()
 		{
 			var start = Position + Vector3.Up * 2;
-			var end = Position + Vector3.Down * (float)MoveProp["StepSize"];
+			var end = Position + Vector3.Down * Player.Properties.StepSize;
 
 			// See how far up we can go without getting stuck
 			var trace = TraceBBox( Position, start );
@@ -201,7 +201,7 @@ namespace Momentum
 			if ( trace.Fraction <= 0 ) return;
 			if ( trace.Fraction >= 1 ) return;
 			if ( trace.StartedSolid ) return;
-			if ( Vector3.GetAngle( Vector3.Up, trace.Normal ) > (float)MoveProp["StandableAngle"] ) return;
+			if ( Vector3.GetAngle( Vector3.Up, trace.Normal ) > Player.Properties.StandableAngle ) return;
 
 			// This is incredibly hacky. The real problem is that trace returning that strange value we can't network over.
 			// float flDelta = fabs(mv->GetAbsOrigin().z - trace.m_vEndPos.z);
@@ -223,7 +223,7 @@ namespace Momentum
 			Accelerate.Move( ref velocity,
 					WishVelocity,
 					GetWalkSpeed(),
-					(float)MoveProp["Accelerate"] );
+					Player.Properties.Accelerate );
 			Velocity = velocity;
 			Velocity = Velocity.WithZ( 0 );
 
@@ -285,7 +285,7 @@ namespace Momentum
 				return;
 
 			ClearGroundEntity();
-			Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity.WithZ( (float)MoveProp["JumpPower"] ) );
+			Velocity = Gravity.AddGravity( Player.Properties.Gravity * 0.5f, Velocity.WithZ( Player.Properties.JumpPower ) );
 			AddEvent( "jump" );
 
 			Player.Duck.JumpTime = Player.Duck.JumpingTime;
@@ -336,7 +336,7 @@ namespace Momentum
 			//Log.Info( GetViewOffset() );
 			EyeLocalPosition = Vector3.Up * GetViewOffset() * Pawn.Scale;
 			EyeRotation = Input.Rotation;
-			WishVelocity = WishVel( (float)MoveProp["MaxMove"] );
+			WishVelocity = WishVel( Player.Properties.MaxMove );
 			UpdateBBox();
 
 			if ( Unstuck.TestAndFix() )
@@ -363,7 +363,7 @@ namespace Momentum
 			//
 			if ( !Swimming && !IsTouchingLadder )
 			{
-				Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity );
+				Velocity = Gravity.AddGravity( Player.Properties.Gravity * 0.5f, Velocity );
 				Velocity += new Vector3( 0, 0, BaseVelocity.z ) * Time.Delta;
 				BaseVelocity = BaseVelocity.WithZ( 0 );
 			}
@@ -383,7 +383,7 @@ namespace Momentum
 				if ( Velocity.z < 0.0f && Player.Water.JumpTime > 0.0f )
 					Player.Water.JumpTime = 0.0f;
 
-				if ( (bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
+				if ( Player.Properties.AutoJump ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
 
 				Player.Water.Simulate( Client );
@@ -392,19 +392,19 @@ namespace Momentum
 				if ( OnGround() )
 					Velocity = Velocity.WithZ( 0 );
 
-				MoveProp["MoveState"] = STATE.WATER;
+				Player.Properties.MoveState = STATE.WATER;
 			}
 			else
 			{
 
-				if ( (bool)MoveProp["AutoJump"] ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
+				if ( Player.Properties.AutoJump ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
 
 				if ( OnGround() )
 				{
 					Velocity = Velocity.WithZ( 0 );
 					var velocity = Velocity;
-					Friction.Move( ref velocity, (float)MoveProp["Friction"], (float)MoveProp["StopSpeed"] );
+					Friction.Move( ref velocity, Player.Properties.Friction, Player.Properties.StopSpeed );
 					Velocity = velocity;
 				}
 
@@ -419,23 +419,23 @@ namespace Momentum
 				if ( IsTouchingLadder )
 				{
 					LadderMove();
-					MoveProp["MoveState"] = STATE.LADDER;
+					Player.Properties.MoveState = STATE.LADDER;
 				}
 				else if ( OnGround() )
 				{
 					bStayOnGround = true;
 					WalkMove();
-					MoveProp["MoveState"] = STATE.GROUND;
+					Player.Properties.MoveState = STATE.GROUND;
 				}
 				else
 				{
 					AirMove();
-					MoveProp["MoveState"] = STATE.INAIR;
+					Player.Properties.MoveState = STATE.INAIR;
 				}
 
 				// FinishGravity
 				if ( !IsTouchingLadder )
-					Velocity = Gravity.AddGravity( (float)MoveProp["Gravity"] * 0.5f, Velocity );
+					Velocity = Gravity.AddGravity( Player.Properties.Gravity * 0.5f, Velocity );
 
 				if ( OnGround() )
 				{

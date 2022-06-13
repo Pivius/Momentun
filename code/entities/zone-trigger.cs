@@ -71,7 +71,7 @@ namespace Momentum.Entities
 											(BaseController)player.Controller );
 				var normal = Vector3.GetAngle( Vector3.Up, trace.Normal );
 
-				if ( normal > (float)player.MovementProps["StandableAngle"] || normal == 0 )
+				if ( normal > player.Properties.StandableAngle || normal == 0 )
 				{
 					base.EndTouch( ent );
 					player.ZoneTouchEnd( this );

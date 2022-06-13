@@ -10,12 +10,17 @@ namespace Momentum
 									| (ulong)InputButton.Back
 									| (ulong)InputButton.Jump;
 		public int Flags = 0;
+
+		[Net]
+		public Properties Properties { get; set; }
+
 		public MomentumPlayer() { }
 
 		public override void Respawn()
 		{
 			CreateNewComponents();
 			SetModel( "models/citizen/citizen.vmdl" );
+			Properties = new Properties();
 			Controller = new MomentumController();
 			Animator = new StandardPlayerAnimator();
 			CameraMode = new MomentumCamera();
