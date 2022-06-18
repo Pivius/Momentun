@@ -46,6 +46,8 @@ namespace Momentum
 		public float DoubleJumpZ { get; set; } = 250f;
 		[Net]
 		public int RampJump { get; set; } = 2;
+		[Net]
+		public bool CanOverBounce { get; set; } = true;
 
 		// # Accelerate Properties
 

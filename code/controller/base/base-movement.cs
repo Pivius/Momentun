@@ -1,4 +1,5 @@
 using Sandbox;
+using System;
 using Trace = Sandbox.Trace;
 
 namespace Momentum
@@ -10,6 +11,7 @@ namespace Momentum
 		public AirAccelerate AirAccelerate;
 		public new Accelerate Accelerate;
 		public Friction Friction;
+		public float OverClip = 1.001f;
 
 		public float GetWalkSpeed()
 		{
@@ -323,6 +325,37 @@ namespace Momentum
 			}
 		}
 
+		public virtual void OverBounce()
+		{
+			Vector3 point = Position - Vector3.Up * 0.25f;
+			TraceResult trace = TraceBBox( Position, point );
+			DebugOverlay.ScreenText( (Position.z).ToString(), 2 );
+			DebugOverlay.ScreenText( (trace.EndPosition.z).ToString(), 3 );
+			DebugOverlay.ScreenText( (Position.z - trace.EndPosition.z).ToString() );
+			
+			if ( trace.Fraction <= 0 ) 
+				return;
+			if ( trace.Fraction >= 1 ) 
+				return;
+			if ( trace.StartedSolid )
+				return;
+			if ( Vector3.GetAngle( Vector3.Up, trace.Normal ) > Player.Properties.StandableAngle ) 
+				return;
+			if ( Player.Properties.CanOverBounce && trace.Hit && Velocity.z < 150 )
+			{
+				Log.Info( "Normal Vel: " +  Velocity );
+
+				float speed = Velocity.Length;
+					
+				Velocity = ClipVelocity( Velocity, trace.Normal, OverClip );
+				Log.Info( "Clipped Vel: " + Velocity );
+				Velocity = Velocity.Normal * speed;
+				Log.Info( "End Vel: " + Velocity );
+				CategorizePosition( false );
+			}
+	
+		}
+
 		/// <summary>
 		/// Runs first in the simulate method
 		/// </summary>
@@ -400,6 +433,8 @@ namespace Momentum
 				if ( Player.Properties.AutoJump ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
 
+				OverBounce();
+
 				if ( OnGround() )
 				{
 					Velocity = Velocity.WithZ( 0 );
@@ -431,6 +466,9 @@ namespace Momentum
 				{
 					AirMove();
 					Player.Properties.MoveState = STATE.INAIR;
+
+					if ( MathF.Abs( Velocity.x ) == 1 && MathF.Abs( Velocity.y ) == 1 )
+						Velocity = Velocity.WithX( 0 ).WithY( 0 );
 				}
 
 				// FinishGravity
