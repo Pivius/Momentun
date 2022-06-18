@@ -83,6 +83,7 @@ namespace Momentum
 			ContainerTick();
 			transform.AddTranslateX( DeltaViewAngles.yaw );
 			transform.AddTranslateY( -DeltaViewAngles.pitch );
+			transform.AddRotation( -DeltaViewAngles.pitch * 0.5f, DeltaViewAngles.yaw * 0.5f, 0 );
 			Style.Transform = transform;
 			Style.Dirty();
 		}
