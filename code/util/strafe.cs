@@ -6,26 +6,6 @@ namespace Momentum
 	public static class Strafe
 	{
 		/// <summary>
-		/// Returns the max cos strafe angle for air control
-		/// </summary>
-		public static float GetControlMaxCos( float deltaSpeed, float airControl, float opt )
-		{
-			float maxControl = deltaSpeed >= airControl ? 0 : MathF.Acos( deltaSpeed / airControl );
-
-			return maxControl < opt ? opt : maxControl;
-		}
-
-		/// <summary>
-		/// Returns the optimal strafe angle for air control
-		/// </summary>
-		public static float GetControlOpt( float airControl, float wishSpeed, float speed )
-		{
-			float num = wishSpeed - airControl;
-
-			return MathF.Acos( num / speed );
-		}
-
-		/// <summary>
 		/// Returns the minimal strafe angle
 		/// </summary>
 		public static float GetStrafeMin( float wishSpeed, float speed, float prevSpeedSqr, float speedSqr )

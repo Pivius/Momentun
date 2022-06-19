@@ -7,13 +7,6 @@ namespace Momentum
 	public partial class CGaz : Elements
 	{
 		private float MoveAngle;
-		private float PrevSpeedSqr;
-		private float SpeedSqr;
-		private float Accelerate;
-		private float AccelerateSqr;
-		private float AirControlSpeed;
-		private float PrevSpeed;
-		private float Speed;
 		private float ControlMaxCos;
 		private float ControlOpt;
 		private float StrafeMin;
@@ -30,11 +23,11 @@ namespace Momentum
 		private bool MovingBackwards = false;
 		private Vector3 PrevVelocity;
 
-		private Panel MainPanel;
-		private Panel MaxCos;
-		private Panel Opt;
-		private Panel Max;
-		private Panel CenterPin;
+		private readonly Panel MainPanel;
+		private readonly Panel MaxCos;
+		private readonly Panel Opt;
+		private readonly Panel Max;
+		private readonly Panel CenterPin;
 
 		public CGaz()
 		{
@@ -49,24 +42,25 @@ namespace Momentum
 
 		private void UpdateDraw( MomentumPlayer player, float wishSpeed, float accelerate )
 		{
-			PrevSpeedSqr = PrevVelocity.WithZ( 0 ).LengthSquared;
-			SpeedSqr = player.Velocity.WithZ( 0 ).LengthSquared;
-			Accelerate = accelerate * wishSpeed * Time.Delta;
-			AccelerateSqr = MathF.Pow( Accelerate, 2 );
-			AirControlSpeed = 32f * player.Properties.AirControl * Time.Delta;
+			float prevSpeedSqr = PrevVelocity.WithZ( 0 ).LengthSquared;
+			float speedSqr = player.Velocity.WithZ( 0 ).LengthSquared;
+			float airControlAccel = 32f * player.Properties.AirControl * Time.Delta;
 
-			PrevSpeed = MathF.Sqrt( PrevSpeedSqr );
-			Speed = MathF.Sqrt( SpeedSqr );
+			accelerate *= wishSpeed * Time.Delta;
 
-			float deltaSpeed = PrevSpeed - Speed;
-			float deltaSpeedSqr = PrevSpeedSqr - SpeedSqr;
+			float accelerateSqr = MathF.Pow( accelerate, 2 );
+			float prevSpeed = MathF.Sqrt( prevSpeedSqr );
+			float speed = MathF.Sqrt( speedSqr );
 
-			ControlOpt = Strafe.GetControlOpt( AirControlSpeed, wishSpeed, Speed );
-			ControlMaxCos = Strafe.GetControlMaxCos( deltaSpeed, AirControlSpeed, ControlOpt );
-			StrafeMin = Strafe.GetStrafeMin( wishSpeed, Speed, PrevSpeedSqr, SpeedSqr );
-			StrafeOpt = Strafe.GetStrafeOpt( wishSpeed, Speed, Accelerate );
-			StrafeMaxCos = Strafe.GetStrafeMaxCos( StrafeOpt, deltaSpeed, Accelerate );
-			StrafeMax = Strafe.GetStrafeMax( StrafeMaxCos, deltaSpeedSqr, AccelerateSqr, Accelerate, Speed );
+			float deltaSpeed = prevSpeed - speed;
+			float deltaSpeedSqr = prevSpeedSqr - speedSqr;
+
+			ControlOpt = Strafe.GetStrafeOpt( wishSpeed, speed, airControlAccel );
+			ControlMaxCos = Strafe.GetStrafeMaxCos( ControlOpt, deltaSpeed, airControlAccel );
+			StrafeMin = Strafe.GetStrafeMin( wishSpeed, speed, prevSpeedSqr, speedSqr );
+			StrafeOpt = Strafe.GetStrafeOpt( wishSpeed, speed, accelerate );
+			StrafeMaxCos = Strafe.GetStrafeMaxCos( StrafeOpt, deltaSpeed, accelerate );
+			StrafeMax = Strafe.GetStrafeMax( StrafeMaxCos, deltaSpeedSqr, accelerateSqr, accelerate, speed );
 		}
 
 		private static void SetMaxSpeed( ref float maxSpeed, ref float accelerate, Properties props, bool isSurfing )
@@ -201,6 +195,7 @@ namespace Momentum
 			float maxSpeed = player.Properties.MaxSpeed;
 			float accelerate = player.Properties.StrafeAcceleration;
 			Vector3 eyeAngles = player.EyeRotation.Right;
+			var controller = player.Controller as MomentumController;
 
 			eyeAngles = new Vector3( -eyeAngles.y, eyeAngles.x );
 
@@ -216,9 +211,9 @@ namespace Momentum
 			MainPanel.Style.Width = barWidth - 4;
 			MainPanel.Style.Right = 1;
 			Style.Width = barWidth;
-			MoveAngle = MathX.DegreeToRadian( velocity.WithZ( 0 ).Angle( player.Controller.WishVelocity.WithZ( 0 ).Normal ) );
+			MoveAngle = MathX.DegreeToRadian( velocity.WithZ( 0 ).Angle( controller.WishVelocity.WithZ( 0 ).Normal ) );
 
-			SetMaxSpeed( ref maxSpeed, ref accelerate, player.Properties, ((MomentumController)player.Controller).IsSurfing );
+			SetMaxSpeed( ref maxSpeed, ref accelerate, player.Properties, controller.IsSurfing );
 			UpdateDraw( player, maxSpeed, accelerate );
 			DrawStrafeAngles();
 			DrawControlAngles();
