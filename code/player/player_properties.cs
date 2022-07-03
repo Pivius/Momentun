@@ -40,7 +40,7 @@ namespace Momentum
 		public bool AutoJump { get; set; } = true;
 		[Net]
 		public bool AllowAutoMovement { get; set; } = true;
-		[Net]
+		[Net, Predicted]
 		public STATE MoveState { get; set; } = STATE.GROUND;
 		[Net]
 		public float DoubleJumpZ { get; set; } = 250f;
