@@ -212,7 +212,7 @@ namespace Momentum
 			Position = trace.EndPosition;
 		}
 
-		public override void WalkMove()
+		public virtual void ApplyAccelerate()
 		{
 			var wishDir = WishVelocity.Normal;
 			var wishSpeed = WishVelocity.Length;
@@ -228,6 +228,11 @@ namespace Momentum
 					Player.Properties.Accelerate );
 			Velocity = velocity;
 			Velocity = Velocity.WithZ( 0 );
+		}
+
+		public override void WalkMove()
+		{
+			ApplyAccelerate();
 
 			// Add in any base velocity to the current velocity.
 			Velocity += BaseVelocity;
@@ -343,17 +348,27 @@ namespace Momentum
 				return;
 			if ( Player.Properties.CanOverBounce && trace.Hit && Velocity.z < 150 )
 			{
-				Log.Info( "Normal Vel: " +  Velocity );
+				//Log.Info( "Normal Vel: " +  Velocity );
 
 				float speed = Velocity.Length;
 					
 				Velocity = ClipVelocity( Velocity, trace.Normal, OverClip );
-				Log.Info( "Clipped Vel: " + Velocity );
+				//Log.Info( "Clipped Vel: " + Velocity );
 				Velocity = Velocity.Normal * speed;
-				Log.Info( "End Vel: " + Velocity );
+				///Log.Info( "End Vel: " + Velocity );
 				CategorizePosition( false );
 			}
-	
+		}
+
+		public virtual void ApplyFriction()
+		{
+			if ( OnGround() )
+			{
+				Velocity = Velocity.WithZ( 0 );
+				var velocity = Velocity;
+				Friction.Move( ref velocity, Player.Properties.Friction, Player.Properties.StopSpeed );
+				Velocity = velocity;
+			}
 		}
 
 		/// <summary>
@@ -435,13 +450,7 @@ namespace Momentum
 
 				OverBounce();
 
-				if ( OnGround() )
-				{
-					Velocity = Velocity.WithZ( 0 );
-					var velocity = Velocity;
-					Friction.Move( ref velocity, Player.Properties.Friction, Player.Properties.StopSpeed );
-					Velocity = velocity;
-				}
+				ApplyFriction();
 
 				Player.Duck.UpdateDuckJumpEyeOffset();
 				Player.Duck.Simulate( Client );

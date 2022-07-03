@@ -9,12 +9,15 @@ namespace Momentum
 		[Net, Predicted]
 		public Duck Duck { get; set; }
 		[Net, Predicted]
-		public Walljump Walljump { get; set; }
+		public Wallrun Wallrun { get; set; }
+		[Net, Predicted]
+		public Grind Grind { get; set; }
 		public void CreateNewComponents()
 		{
 			Water = new() { Player = this };
 			Duck = new() { Player = this };
-			Walljump = new() { Player = this };
+			Wallrun = new() { Player = this };
+			Grind = new() { Player = this };
 		}
 	}
 }

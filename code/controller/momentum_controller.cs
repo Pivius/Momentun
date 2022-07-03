@@ -13,6 +13,8 @@ namespace Momentum
 		public TimeAssociatedMap<bool> ShouldClip { get; set; }
 		[Net, Predicted]
 		public AirAccelerate SurfAccelerate { get; set; }
+		[Net, Predicted]
+		public bool IsSliding { get; set; }
 
 		public MomentumController()
 		{
@@ -55,6 +57,7 @@ namespace Momentum
 
 			mover.Trace = mover.Trace.Size( OBBMins, OBBMaxs ).Ignore( Pawn );
 			mover.MaxStandableAngle = Player.Properties.StandableAngle;
+			
 
 			var trace = mover.TraceFromTo( Position, Position + Velocity * Time.Delta );
 			var angle = trace.Normal.Angle( Vector3.Up );
@@ -157,6 +160,55 @@ namespace Momentum
 			ClipTime = 0;
 		}
 
+		public override void ApplyAccelerate()
+		{
+			if ( IsSliding )
+			{
+				var wishDir = WishVelocity.Normal;
+				var wishSpeed = WishVelocity.Length;
+				Vector3 velocity;
+
+				WishVelocity = WishVelocity.WithZ( 0 );
+				WishVelocity = WishVelocity.Normal * wishSpeed;
+				Velocity = Velocity.WithZ( 0 );
+				velocity = Velocity;
+				Accelerate.Move( ref velocity,
+						WishVelocity,
+						GetWalkSpeed(),
+						1 );
+				Velocity = velocity;
+				Velocity = Velocity.WithZ( 0 );
+			}
+			else
+			{
+				base.ApplyAccelerate();
+			}
+		}
+
+		public override void ApplyFriction()
+		{
+			if ( OnGround() )
+			{
+				if ( Player.Duck.IsDucked && Velocity.WithZ( 0 ).Length > 300 )
+				{
+					var velocity = Velocity.WithZ( 0 );
+	
+					Friction.Move( ref velocity, 0.25f, Player.Properties.StopSpeed );
+					Velocity = velocity;
+					IsSliding = true;
+				}
+				else
+				{
+					base.ApplyFriction();
+					IsSliding = false;
+				}
+			}
+			else
+			{
+				IsSliding = false;
+			}
+		}
+
 		public override void Simulate()
 		{
 			if ( StartMove() )
@@ -167,7 +219,8 @@ namespace Momentum
 
 			EndMove();
 
-			Player.Walljump.Simulate( Client );
+			Player.Grind.Simulate( Client );
+			Player.Wallrun.Simulate( Client );
 		}
 
 	}
