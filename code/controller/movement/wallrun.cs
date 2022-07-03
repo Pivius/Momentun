@@ -1,8 +1,9 @@
 using Sandbox;
+using System;
 
 namespace Momentum
 {
-	public partial class Walljump : PredictedComponent
+	public partial class Wallrun : PredictedComponent
 	{
 		[Net]
 		public float Delay { get; set; } = 0.5f;
@@ -62,15 +63,44 @@ namespace Momentum
 			return trace;
 		}
 
+		public void StartWallRun( Vector3 velocity, Vector3 traceNormal, float velLength2D )
+		{
+			Vector3 moveDir = Vector3.Cross( Vector3.Up, traceNormal );
+
+			if ( velocity.Normal.Dot( moveDir ) < 0 )
+				moveDir *= -1;
+
+			IsSticking = true;
+			TimeSinceStick = 0;
+			WallDir = traceNormal;
+			WallRunDir = moveDir;
+			WallRunSpeed = velLength2D;
+		}
+
+		public void StopWallrun( Rotation eyeRotation )
+		{
+			Vector3 eyeNormal = eyeRotation.Forward.Normal;
+
+			eyeNormal.z *= 1.2f;
+			Controller.Velocity += eyeNormal * new Vector3( SideSpeed, SideSpeed, UpSpeed );
+			IsSticking = false;
+			WalljumpTime = Delay;
+		}
+
 		public override void Simulate()
 		{
-			Vector3 right = Controller.EyeRotation.Right;
-			Vector3 traceDirection = new Vector3( -right.y, right.x, 0 );
+			Rotation eyeRotation = Controller.EyeRotation;
+			Vector3 right = eyeRotation.Right;
+			Vector3 traceDirection = new( -right.y, right.x, 0 );
 			TraceResult trace = Trace( traceDirection );
-			float angle = Vector3.GetAngle( traceDirection, trace.Normal );
-			var button = InputButton.SecondaryAttack;
+			Vector3 traceNormal = trace.Normal;
+			float angle = Vector3.GetAngle( traceDirection, traceNormal );
+			InputButton button = InputButton.SecondaryAttack;
 			bool shouldStick = TimeSinceStick <= StickTime;
 			bool traceHit = trace.Hit;
+			Vector3 velocity = Controller.Velocity;
+			float velLength2D = velocity.WithZ( 0 ).LengthSquared;
+			float slideSquared = MathF.Pow( 100f, 2 );
 
 			if (
 				WalljumpTime <= 0 &&
@@ -79,19 +109,10 @@ namespace Momentum
 				!IsSticking &&
 				angle <= MaxAngle &&
 				traceHit &&
-				Controller.Velocity.WithZ( 0 ).Length > 100 &&
+				velLength2D > slideSquared &&
 				!shouldStick )
 			{
-				Vector3 velDir = Controller.Velocity.Normal.WithZ( 0 );
-
-				velDir += velDir.SubtractDirection( trace.Normal.WithZ( 0 ), 2f );
-				velDir = velDir.Clamp( -1, 1 );
-
-				IsSticking = true;
-				TimeSinceStick = 0;
-				WallDir = trace.Normal;
-				WallRunDir = velDir;
-				WallRunSpeed = Controller.Velocity.WithZ( 0 ).Length;
+				StartWallRun( velocity, traceNormal, velLength2D );
 			}
 			else if (
 				(Input.Released( button ) ||
@@ -100,9 +121,7 @@ namespace Momentum
 				!traceHit) &&
 				IsSticking )
 			{
-				Controller.Velocity += Controller.EyeRotation.Forward.Normal * new Vector3( SideSpeed, SideSpeed, UpSpeed );
-				IsSticking = false;
-				WalljumpTime = Delay;
+				StopWallrun( eyeRotation );
 			}
 
 			if ( IsSticking && Input.Down( button ) )
@@ -110,8 +129,11 @@ namespace Momentum
 				Vector3 velDir = WallRunDir - (WallDir * 0.5f);
 
 				velDir = velDir.Clamp( -1, 1 );
-				WallRunSpeed = MathX.Clamp( InterpFunctions.InQuart( WallRunSpeed, -100, TimeSinceStick, StickTime ), 100, WallRunSpeed );
-				Controller.Velocity = velDir * WallRunSpeed;
+				WallRunSpeed = MathX.Clamp(
+					InterpFunctions.InQuart( WallRunSpeed, -slideSquared, TimeSinceStick, StickTime ),
+					slideSquared,
+					WallRunSpeed );
+				Controller.Velocity = velDir * MathF.Sqrt( WallRunSpeed );
 			}
 
 		}
