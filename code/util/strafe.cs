@@ -59,9 +59,6 @@ namespace Momentum
 			return max < maxCos ? maxCos : max;
 		}
 
-
-
-
 		/// <summary>
 		/// Returns the direction of strafe angle aligned with view in degrees
 		/// </summary>
