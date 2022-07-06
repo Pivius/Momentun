@@ -25,7 +25,7 @@ namespace TrickHop.Controller
 			Unstuck = new Unstuck( this );
 		}
 
-		public MomentumPlayer Player => Pawn as MomentumPlayer;
+		public Player.Player Player => Pawn as Player.Player;
 
 		public override TraceResult TraceBBox( Vector3 start,
 										Vector3 end,

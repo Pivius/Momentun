@@ -11,9 +11,9 @@ namespace TrickHop
 	/// You can use this to create things like HUDs and declare which player class
 	/// to use for spawned players.
 	/// </summary>
-	public partial class MomentumGame : Sandbox.Game
+	public partial class Game : Sandbox.Game
 	{
-		public MomentumGame()
+		public Game()
 		{
 			if ( IsServer )
 			{
@@ -25,7 +25,7 @@ namespace TrickHop
 		{
 			base.ClientJoined( client );
 
-			var player = new MomentumPlayer();
+			var player = new Player.Player();
 			client.Pawn = player;
 			player.Respawn();
 		}

@@ -53,10 +53,10 @@ namespace TrickHop.Entities
 	{
 		public override void Touch( Entity ent )
 		{
-			if ( ent is not MomentumPlayer )
+			if ( ent is not Player.Player )
 				return;
 
-			MomentumPlayer player = ent as MomentumPlayer;
+			Player.Player player = ent as Player.Player;
 
 			if ( (Mode is ZONE_MODE.INAIR && player.GroundEntity is null) ||
 				(Mode is ZONE_MODE.GROUNDED && player.GroundEntity is not null) )
@@ -89,10 +89,10 @@ namespace TrickHop.Entities
 
 		public override void EndTouch( Entity ent )
 		{
-			if ( ent is not MomentumPlayer )
+			if ( ent is not Player.Player )
 				return;
 
-			MomentumPlayer player = ent as MomentumPlayer;
+			Player.Player player = ent as Player.Player;
 
 			base.Touch( ent );
 			player.ZoneTouchEnd( this );

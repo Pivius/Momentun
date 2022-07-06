@@ -6,9 +6,9 @@ namespace TrickHop.Utility
 {
 	public partial class PredictedComponent : Entity
 	{
-		public MomentumPlayer Player
+		public Player.Player Player
 		{
-			get => Owner as MomentumPlayer;
+			get => Owner as Player.Player;
 			set => SetOwner( value );
 		}
 
@@ -18,7 +18,7 @@ namespace TrickHop.Utility
 		{
 			Owner = player;
 			Parent = player;
-			Controller = (player as MomentumPlayer).Controller as Controller.Controller;
+			Controller = (player as Player.Player).Controller as Controller.Controller;
 		}
 
 		public override void Spawn()

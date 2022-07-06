@@ -43,7 +43,7 @@ namespace TrickHop.UI
 			CenterPin = Add.Panel( "center" );
 		}
 
-		private void UpdateDraw( MomentumPlayer player, float wishSpeed, float accelerate )
+		private void UpdateDraw( Player.Player player, float wishSpeed, float accelerate )
 		{
 			float prevSpeedSqr = PrevVelocity.WithZ( 0 ).LengthSquared;
 			float speedSqr = player.Velocity.WithZ( 0 ).LengthSquared;
@@ -191,7 +191,7 @@ namespace TrickHop.UI
 
 		public override void Tick()
 		{
-			if ( Local.Pawn is not MomentumPlayer player ) return;
+			if ( Local.Pawn is not Player.Player player ) return;
 
 			Vector3 velocity = player.Velocity;
 			float barWidth = 500f;
