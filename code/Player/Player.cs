@@ -3,7 +3,7 @@ using TrickHop.Controller;
 
 namespace TrickHop.Player
 {
-	public partial class MomentumPlayer : Sandbox.Player
+	public partial class Player : Sandbox.Player
 	{
 		protected ulong SpawnButtons = (ulong)InputButton.Forward
 									| (ulong)InputButton.Right
@@ -16,16 +16,16 @@ namespace TrickHop.Player
 		public Properties Properties { get; set; }
 		[Net, Predicted]
 		public int LastAirTick { get; set; }
-		public MomentumPlayer() { }
+		public Player() { }
 
 		public override void Respawn()
 		{
 			CreateNewComponents();
 			SetModel( "models/citizen/citizen.vmdl" );
 			Properties = new Properties();
-			Controller = new MomentumController();
+			Controller = new Controller.Controller();
 			Animator = new StandardPlayerAnimator();
-			CameraMode = new MomentumCamera();
+			CameraMode = new Camera();
 
 			EnableAllCollisions = true;
 			EnableDrawing = true;

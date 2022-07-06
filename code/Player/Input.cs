@@ -2,7 +2,7 @@ using Sandbox;
 
 namespace TrickHop.Player
 {
-	public partial class MomentumPlayer
+	public partial class Player
 	{
 		ulong Buttons { get; set; }
 		ulong OldButtons { get; set; }

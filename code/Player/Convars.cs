@@ -2,7 +2,7 @@ using Sandbox;
 
 namespace TrickHop.Player
 {
-	public partial class MomentumPlayer
+	public partial class Player
 	{
 		[ConVar.ClientData( "m_customaccel" )] public static float CustomAccel { get; set; } = 0.0f;
 		[ConVar.ClientData( "m_customaccel_scale" )] public static float CustomAccelScale { get; set; } = 0.04f;

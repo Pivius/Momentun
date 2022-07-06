@@ -12,13 +12,13 @@ namespace TrickHop.Utility
 			set => SetOwner( value );
 		}
 
-		public MomentumController Controller { get; set; }
+		public Controller.Controller Controller { get; set; }
 
 		public void SetOwner( Entity player )
 		{
 			Owner = player;
 			Parent = player;
-			Controller = (player as MomentumPlayer).Controller as MomentumController;
+			Controller = (player as MomentumPlayer).Controller as Controller.Controller;
 		}
 
 		public override void Spawn()

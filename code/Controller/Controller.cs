@@ -6,7 +6,7 @@ using TrickHop.Utility;
 
 namespace TrickHop.Controller
 {
-	public partial class MomentumController : BaseController
+	public partial class Controller : BaseController
 	{
 		[Net, Predicted]
 		public TimeSince DoubleJumpTime { get; set; }
@@ -22,7 +22,7 @@ namespace TrickHop.Controller
 		public bool WasOnGround { get; set; }
 
 
-		public MomentumController()
+		public Controller()
 		{
 			AirAccelerate = new QuakeAirAccelerate();
 			SurfAccelerate = new AirAccelerate();

@@ -5,7 +5,7 @@ using Water = TrickHop.Movement.Water;
 
 namespace TrickHop.Player
 {
-	public partial class MomentumPlayer
+	public partial class Player
 	{
 		[Net, Predicted]
 		public Water Water { get; set; }

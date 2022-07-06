@@ -3,7 +3,7 @@ using TrickHop.Utility;
 
 namespace TrickHop.Player
 {
-	public class MomentumCamera : FirstPersonCamera
+	public class Camera : FirstPersonCamera
 	{
 		protected Vector2 PreviousDelta;
 

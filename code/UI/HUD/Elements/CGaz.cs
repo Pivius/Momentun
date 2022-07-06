@@ -198,7 +198,7 @@ namespace TrickHop.UI
 			float maxSpeed = player.Properties.MaxSpeed;
 			float accelerate = player.Properties.StrafeAcceleration;
 			Vector3 eyeAngles = player.EyeRotation.Right;
-			var controller = player.Controller as MomentumController;
+			var controller = player.Controller as Controller.Controller;
 			float barOptPos = BarOptPosition;
 			float barOptWidth = BarOptWidth;
 			float barMaxPos = BarMaxPosition;

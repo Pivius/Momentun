@@ -4,7 +4,7 @@ using TrickHop.Entities;
 
 namespace TrickHop.Player
 {
-	public partial class MomentumPlayer
+	public partial class Player
 	{
 		public List<ZoneTrigger> ZoneOrder = new();
 		public List<string> ZoneOrderStatus = new();
