@@ -1,8 +1,8 @@
 using Sandbox;
 
-namespace Momentum
+namespace TrickHop.Player
 {
-	public partial class MomentumPlayer : Player
+	public partial class MomentumPlayer
 	{
 		ulong Buttons { get; set; }
 		ulong OldButtons { get; set; }

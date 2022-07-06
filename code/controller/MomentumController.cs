@@ -1,6 +1,10 @@
 using Sandbox;
+using System;
+using TrickHop.Movement;
+using TrickHop.Player;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.Controller
 {
 	public partial class MomentumController : BaseController
 	{
@@ -11,10 +15,12 @@ namespace Momentum
 		[Net, Predicted]
 		public TimeSince ClipTime { get; set; }
 		public TimeAssociatedMap<bool> ShouldClip { get; set; }
-		[Net, Predicted]
 		public AirAccelerate SurfAccelerate { get; set; }
 		[Net, Predicted]
 		public bool IsSliding { get; set; }
+		[Net, Predicted]
+		public bool WasOnGround { get; set; }
+
 
 		public MomentumController()
 		{
@@ -185,6 +191,38 @@ namespace Momentum
 			}
 		}
 
+		public virtual void OverBounce()
+		{
+			if (OldVelocity.z < -750 && Velocity.WithZ(0).LengthSquared <= MathF.Pow(100,2) && WasOnGround == false && GroundEntity != null )
+			{
+				Vector3 position = Position + Vector3.Up;
+				Vector3 point = position - Vector3.Up * 10.25f ;
+				TraceResult trace = TraceBBox( position, point );
+				BetterLog.Info( Vector3.GetAngle( Vector3.Up, trace.Normal ) );
+				/*
+				if ( trace.Fraction <= 0 )
+					return;
+				if ( trace.Fraction >= 1 )
+					return;*/
+				//if ( trace.StartedSolid )
+					//return;
+				if ( Vector3.GetAngle( Vector3.Up, trace.Normal ) > Player.Properties.StandableAngle )
+					return;
+				if ( Player.Properties.CanOverBounce && trace.Hit )
+				{
+					//Log.Info( "Normal Vel: " +  Velocity );
+
+					float speed = OldVelocity.Length;
+					Position = Position + Vector3.Up;
+					Velocity = ClipVelocity( OldVelocity, trace.Normal, OverClip );
+					//Log.Info( "Clipped Vel: " + Velocity );
+					Velocity = OldVelocity.Normal * speed;
+					///Log.Info( "End Vel: " + Velocity );
+					CategorizePosition( false );
+				}
+			}
+		}
+
 		public override void ApplyFriction()
 		{
 			if ( OnGround() )
@@ -214,13 +252,16 @@ namespace Momentum
 			if ( StartMove() )
 				return;
 
+			Player.Grind.Simulate( Client );
+
 			if ( SetupMove() )
 				return;
-
+			OverBounce();
 			EndMove();
 
-			Player.Grind.Simulate( Client );
+
 			Player.Wallrun.Simulate( Client );
+			WasOnGround = GroundEntity != null;
 		}
 
 	}

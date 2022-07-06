@@ -1,7 +1,7 @@
 using Sandbox;
 using System;
 
-namespace Momentum
+namespace TrickHop.Movement
 {
 	public partial class Friction : Accelerate
 	{

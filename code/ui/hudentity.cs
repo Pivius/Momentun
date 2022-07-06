@@ -1,6 +1,6 @@
 using Sandbox.UI;
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public partial class HudEntity : Sandbox.HudEntity<RootPanel>
 	{
@@ -8,7 +8,7 @@ namespace Momentum
 		{
 			if ( IsClient )
 			{
-				RootPanel.StyleSheet.Load( "/ui/hudentity.scss" );
+				RootPanel.StyleSheet.Load( "/UI/HUDEntity.scss" );
 				RootPanel.AddChild<HUDModule>();
 				//RootPanel.AddChild<Velocity>();
 			}

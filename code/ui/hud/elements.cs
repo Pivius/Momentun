@@ -2,13 +2,13 @@ using Sandbox.UI;
 using Sandbox.UI.Construct;
 using System.Collections.Generic;
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public class Elements : Panel
 	{
 		public Dictionary<string, Panel> Labels = new();
 		public Dictionary<string, string> Properties = new();
-		public string StylePath { get; set; } = "/ui/hud/elements.scss";
+		public string StylePath { get; set; } = "/UI/HUD/Elements.scss";
 		public Elements() => StyleSheet.Load( StylePath );
 
 		public void SetStyleSheet( string path )

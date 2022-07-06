@@ -1,15 +1,15 @@
 using Sandbox.UI;
 using System.Collections.Generic;
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public class Container : Panel
 	{
 		public Dictionary<string, Elements> Elements = new();
 		public Dictionary<string, object> Properties = new();
-		public string StylePath { get; set; } = "/ui/hud/containers.scss";
+		public string StylePath { get; set; } = "/UI/HUD/Containers.scss";
 		public int Alignment { get; set; } = 1;
-		public Container() => StyleSheet.Load( "/ui/hud/containers.scss" );
+		public Container() => StyleSheet.Load( "/UI/HUD/Containers.scss" );
 
 		public void SetStyleSheet( string path )
 		{

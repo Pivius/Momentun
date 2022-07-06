@@ -1,7 +1,9 @@
 using Sandbox;
 using System;
+using TrickHop.Movement;
+using TrickHop.Player;
 
-namespace Momentum
+namespace TrickHop.Controller
 {
 	public abstract partial class BaseController : WalkController
 	{

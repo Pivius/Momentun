@@ -1,10 +1,10 @@
-using Momentum.Entities;
 using Sandbox;
 using System.Collections.Generic;
+using TrickHop.Entities;
 
-namespace Momentum
+namespace TrickHop.Player
 {
-	public partial class MomentumPlayer : Player
+	public partial class MomentumPlayer
 	{
 		public List<ZoneTrigger> ZoneOrder = new();
 		public List<string> ZoneOrderStatus = new();

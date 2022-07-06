@@ -1,6 +1,8 @@
 using Sandbox;
+using TrickHop.Player;
+using TrickHop.Controller;
 
-namespace Momentum
+namespace TrickHop.Utility
 {
 	public partial class PredictedComponent : Entity
 	{

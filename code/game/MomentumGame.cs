@@ -1,7 +1,8 @@
 ﻿using Sandbox;
+using TrickHop.Player;
+using TrickHop.UI;
 
-
-namespace Momentum
+namespace TrickHop
 {
 	/// <summary>
 	/// This is your game class. This is an entity that is created serverside when

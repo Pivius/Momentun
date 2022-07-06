@@ -1,19 +1,17 @@
 {
-  "Title": "Momentum",
+  "Title": "TrickHop",
   "Type": "game",
   "Org": "local",
-  "Ident": "momentum",
+  "Ident": "trickhop",
   "Schema": 1,
   "HasAssets": true,
   "AssetsPath": "",
   "ResourcePaths": null,
   "HasCode": true,
-  "CodePath": "/code/",
+  "CodePath": "code",
   "RootNamespace": "Sandbox",
   "Metadata": {
-    "MapList": [
-      "facepunch.construct"
-    ],
+    "MapList": [],
     "PerMapRanking": false,
     "LeaderboardType": 0,
     "RankType": 0,

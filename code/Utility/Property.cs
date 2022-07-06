@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sandbox
+namespace TrickHop.Utility
 {
-
 	public sealed class Property : Dictionary<string, object>
 	{
 		private readonly Dictionary<string, object> _dictionary = new();

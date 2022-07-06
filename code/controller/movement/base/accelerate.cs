@@ -1,4 +1,4 @@
-namespace Momentum
+namespace TrickHop.Movement
 {
 	public partial class Accelerate : AirAccelerate
 	{

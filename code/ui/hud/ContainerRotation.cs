@@ -2,7 +2,7 @@ using Sandbox.UI;
 using System.Collections.Generic;
 
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public partial class HUDModule : Panel
 	{

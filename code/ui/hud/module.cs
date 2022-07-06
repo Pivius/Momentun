@@ -2,8 +2,9 @@ using Sandbox;
 using Sandbox.UI;
 using System.Collections.Generic;
 using System.Linq;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public partial class HUDModule : Panel
 	{
@@ -16,7 +17,7 @@ namespace Momentum
 
 		public HUDModule()
 		{
-			StyleSheet.Load( "/ui/hud/module.scss" );
+			StyleSheet.Load( "/UI/HUD/Module.scss" );
 			InitContainers();
 			GetContainer( "BottomLeft" ).NewElement<Velocity>( "Velocity" );
 			GetContainer( "BottomCenter" ).NewElement<CGaz>( "CGaz" );

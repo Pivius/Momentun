@@ -1,7 +1,8 @@
 ﻿using Sandbox;
 using System;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.Movement
 {
 	public partial class Grind : PredictedComponent
 	{
@@ -9,10 +10,8 @@ namespace Momentum
 		public bool IsGrinding { get; set; }
 		[Net, Predicted]
 		public TimeSince GrindTime { get; set; }
-		[Net, Predicted]
-		public Vector3 LastNormal { get; set; }
-		[Net, Predicted]
-		public Vector3 LastGrindPos { get; set; }
+
+		public TraceResult LastTrace { get; set; }
 		[Net, Predicted]
 		public float Speed { get; set; }
 
@@ -36,14 +35,15 @@ namespace Momentum
 				.Dot( Controller.Velocity.Normal.WithZ( 0 ) );
 		}
 
-		public TraceResult? Trace()
+		public TraceResult? Trace(Vector3 currentNormal = new Vector3())
 		{
 			Vector3 maxs = Controller.GetPlayerMaxs().WithZ( 0 );
 			Vector3 mins = Controller.GetPlayerMins().WithZ( 0 );
+			float distance = 7f;
 			Vector3 start = Controller.Position;
-			float distance = 4f;
 			Vector3 end = start.WithZ( start.z + MathF.Min( Velocity.z, 0 ) - distance );
-			TraceResult traceHull = Sandbox.Trace.Ray( start, end )
+			TraceResult? lastHitTrace = null;
+			TraceResult traceHull = Sandbox.Trace.Ray( end, end )
 						.Size( mins, maxs.WithZ( 1 ) )
 						.HitLayer( CollisionLayer.All, false )
 						.HitLayer( CollisionLayer.Solid, true )
@@ -58,24 +58,48 @@ namespace Momentum
 				Vector3 linePosition = Controller.Position.WithZ( start.z - distance );
 				TraceResult traceLine = TraceLine( linePosition + maxs / 2, linePosition + mins / 2 );
 
-				if ( traceLine.StartedSolid || !traceLine.Hit )
+				if (traceLine.Hit)
+				{
+					lastHitTrace = traceLine;
+				}
+
+				if ( traceLine.StartedSolid || !traceLine.Hit || traceLine.Normal == currentNormal)
 				{
 					traceLine = TraceLine( linePosition + maxs.WithX( mins.x ) / 2, linePosition + mins.WithX( maxs.x ) / 2 );
 
-					if ( traceLine.StartedSolid || !traceLine.Hit )
+					if ( traceLine.Hit && traceLine.Normal == currentNormal )
+					{
+						lastHitTrace = traceLine;
+					}
+
+					if ( traceLine.StartedSolid || !traceLine.Hit || traceLine.Normal == currentNormal )
 					{
 						traceLine = TraceLine( linePosition + mins / 2, linePosition + maxs / 2 );
 
-						if ( traceLine.StartedSolid || !traceLine.Hit )
+						if ( traceLine.Hit && traceLine.Normal == currentNormal )
+						{
+							lastHitTrace = traceLine;
+						}
+
+						if ( traceLine.StartedSolid || !traceLine.Hit || traceLine.Normal == currentNormal )
 						{
 							traceLine = TraceLine( linePosition + mins.WithX( maxs.x ) / 2, linePosition + maxs.WithX( mins.x ) / 2 );
+
+							if ( traceLine.Hit && traceLine.Normal == currentNormal )
+							{
+								lastHitTrace = traceLine;
+							}
 						}
 					}
 				}
 
-				if ( traceLine.Hit && !traceLine.StartedSolid )
+				if ( traceLine.Hit && !traceLine.StartedSolid && traceLine.Normal != currentNormal )
 				{
 					return traceLine;
+				}
+				else if ( lastHitTrace != null )
+				{
+					return lastHitTrace;
 				}
 			}
 
@@ -86,7 +110,7 @@ namespace Momentum
 		{
 			if ( Input.Down( InputButton.Run ) && Controller.Velocity.WithZ( 0 ).Length > 1 )
 			{
-				TraceResult? trace = Trace();
+				TraceResult? trace = Trace(LastTrace.Normal);
 
 				if ( trace != null )
 				{
@@ -101,28 +125,38 @@ namespace Momentum
 					{
 						Speed = velocity.WithZ( 0 ).Length;
 						IsGrinding = true;
+						GrindTime = 0;
+						LastTrace = railTrace;
+					}
+					else
+					{
+						BetterLog.Info( railTrace.Normal != LastTrace.Normal );
+						if ( railTrace.Normal != LastTrace.Normal )
+						{
+							IsGrinding = false;
+							Controller.Velocity = Controller.Velocity.WithZ( 200 );
+							return;
+						}
 					}
 
-					if ( velocity.Normal.WithZ( 0 ).Dot( moveDir ) < 0 )
+					if ( velocity.Normal.Dot( moveDir ) < 0 )
 						moveDir *= -1;
 
 					Controller.Velocity = moveDir * Speed - (distanceFromRail.Normal * fixPosStep);
-					Controller.Position = position.WithZ( railTrace.EndPosition.z + 4f );
+					Controller.Position = position.WithZ( railTrace.EndPosition.z + 7f );
 					Controller.GroundEntity = null;
+					Controller.WishVelocity = Vector3.Zero;
 					Controller.CategorizePosition( false );
-
-					if ( railTrace.Normal != LastNormal )
-					{
-						LastNormal = railTrace.Normal;
-						LastGrindPos = railTrace.EndPosition;
-					}
+					LastTrace = railTrace;
 				}
 				else
 				{
 					IsGrinding = false;
-					LastNormal = Vector3.Zero;
-					LastGrindPos = Vector3.Zero;
 				}
+			}
+			else
+			{
+				IsGrinding = false;
 			}
 		}
 	}

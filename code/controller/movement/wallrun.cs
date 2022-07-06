@@ -1,7 +1,8 @@
 using Sandbox;
 using System;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.Movement
 {
 	public partial class Wallrun : PredictedComponent
 	{

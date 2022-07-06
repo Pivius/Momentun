@@ -1,8 +1,11 @@
 using Sandbox;
 using Sandbox.UI;
 using System;
+using TrickHop.Controller;
+using TrickHop.Player;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public partial class CGaz : Elements
 	{
@@ -31,7 +34,7 @@ namespace Momentum
 
 		public CGaz()
 		{
-			SetStyleSheet( "/ui/hud/elements/cgaz.scss" );
+			SetStyleSheet( "/UI/HUD/Elements/CGaz.scss" );
 
 			MainPanel = Add.Panel( "backpanel" );
 			MaxCos = MainPanel.Add.Panel( "rad" );
@@ -196,6 +199,12 @@ namespace Momentum
 			float accelerate = player.Properties.StrafeAcceleration;
 			Vector3 eyeAngles = player.EyeRotation.Right;
 			var controller = player.Controller as MomentumController;
+			float barOptPos = BarOptPosition;
+			float barOptWidth = BarOptWidth;
+			float barMaxPos = BarMaxPosition;
+			float barMaxWidth = BarMaxWidth;
+			float barMaxCosPos = BarMaxCosPosition;
+			float barMaxCosWidth = BarMaxCosWidth;
 
 			eyeAngles = new Vector3( -eyeAngles.y, eyeAngles.x );
 
@@ -231,52 +240,42 @@ namespace Momentum
 			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -DrawOpt ) + velocity.EulerAngles.yaw ).Forward * length, Color.Blue, 0, false );
 			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -DrawMax ) + velocity.EulerAngles.yaw ).Forward * length, Color.Yellow, 0, false );
 			//DebugOverlay.Line( player.Position, player.Position + Rotation.FromYaw( MathX.RadianToDegree( -DrawMaxCos ) + velocity.EulerAngles.yaw ).Forward * length, Color.Cyan, 0, false );
-
-			if ( !DrawCGaz )
+			if ( !DrawCGaz || (Time.Tick - player.LastAirTick >= 2 && controller.GroundEntity != null) )
 			{
 				var duration = 0.1f;
 
 				BarOptPosition = InterpFunctions.Linear(
-					BarOptPosition,
-					(barWidth / 2) - BarOptPosition,
+					barOptPos,
+					(barWidth / 2) - barOptPos,
 					Time.Delta,
 					duration );
 				BarOptWidth = InterpFunctions.Linear(
-					BarOptWidth,
-					0 - BarOptWidth,
+					barOptWidth,
+					-1 - barOptWidth,
 					Time.Delta,
 					duration );
 
 				BarMaxPosition = InterpFunctions.Linear(
-					BarMaxPosition,
-					(barWidth / 2) - BarMaxPosition,
+					barMaxPos,
+					(barWidth / 2) - barMaxPos,
 					Time.Delta,
 					duration );
 				BarMaxWidth = InterpFunctions.Linear(
-					BarMaxWidth,
-					0 - BarMaxWidth,
+					barMaxWidth,
+					-1 - barMaxWidth,
 					Time.Delta,
 					duration );
 
 				BarMaxCosPosition = InterpFunctions.Linear(
-					BarMaxCosPosition,
-					(barWidth / 2) - BarMaxCosPosition,
+					barMaxCosPos,
+					(barWidth / 2) - barMaxCosPos,
 					Time.Delta,
 					duration );
 				BarMaxCosWidth = InterpFunctions.Linear(
-					BarMaxCosWidth,
-					0 - BarMaxCosWidth,
+					barMaxCosWidth,
+					-1 - barMaxCosWidth,
 					Time.Delta,
 					duration );
-
-				Opt.Style.Left = BarOptPosition;
-				Opt.Style.Width = BarOptWidth;
-
-				Max.Style.Left = BarMaxPosition;
-				Max.Style.Width = BarMaxWidth;
-
-				MaxCos.Style.Left = BarMaxCosPosition;
-				MaxCos.Style.Width = BarMaxCosWidth;
 			}
 
 			Opt.Style.Left = BarOptPosition;

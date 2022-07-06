@@ -1,6 +1,7 @@
 using Sandbox;
+using TrickHop.Controller;
 
-namespace Momentum
+namespace TrickHop.Utility
 {
 	public struct TraceUtil
 	{

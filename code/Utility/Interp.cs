@@ -2,7 +2,7 @@ using Sandbox;
 using System;
 using System.Collections.Generic;
 
-namespace Momentum
+namespace TrickHop.Utility
 {
 	public class Interp<T>
 	{

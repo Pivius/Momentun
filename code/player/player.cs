@@ -1,8 +1,9 @@
 using Sandbox;
+using TrickHop.Controller;
 
-namespace Momentum
+namespace TrickHop.Player
 {
-	public partial class MomentumPlayer : Player
+	public partial class MomentumPlayer : Sandbox.Player
 	{
 		protected ulong SpawnButtons = (ulong)InputButton.Forward
 									| (ulong)InputButton.Right
@@ -13,7 +14,8 @@ namespace Momentum
 
 		[Net]
 		public Properties Properties { get; set; }
-
+		[Net, Predicted]
+		public int LastAirTick { get; set; }
 		public MomentumPlayer() { }
 
 		public override void Respawn()
@@ -51,8 +53,14 @@ namespace Momentum
 			if ( LifeState != LifeState.Dead )
 			{
 				var controller = GetActiveController();
+				var oldGroundEntity = GroundEntity;
 
 				controller?.Simulate( client, this, GetActiveAnimator() );
+
+				if ( GroundEntity != null && oldGroundEntity == null && Prediction.FirstTime )
+				{
+					LastAirTick = Time.Tick;
+				}
 			}
 			else
 			{

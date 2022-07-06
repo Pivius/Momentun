@@ -1,7 +1,7 @@
 ﻿using Sandbox;
 using System;
 
-namespace Momentum
+namespace TrickHop.Utility
 {
 	public static class Strafe
 	{

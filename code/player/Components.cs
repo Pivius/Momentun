@@ -1,8 +1,11 @@
 using Sandbox;
+using TrickHop.Movement;
+using Duck = TrickHop.Movement.Duck;
+using Water = TrickHop.Movement.Water;
 
-namespace Momentum
+namespace TrickHop.Player
 {
-	public partial class MomentumPlayer : Player
+	public partial class MomentumPlayer
 	{
 		[Net, Predicted]
 		public Water Water { get; set; }

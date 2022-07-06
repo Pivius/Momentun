@@ -3,13 +3,13 @@ using Sandbox.UI;
 using Sandbox.UI.Construct;
 
 
-namespace Momentum
+namespace TrickHop.UI
 {
 	public partial class Velocity : Elements
 	{
 		public Velocity()
 		{
-			SetStyleSheet( "/ui/hud/elements/velocity.scss" );
+			SetStyleSheet( "/UI/HUD/Elements/Velocity.scss" );
 			Label = Add.Label( "100", "label" );
 		}
 

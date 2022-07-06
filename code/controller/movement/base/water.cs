@@ -1,6 +1,9 @@
 using Sandbox;
+using TrickHop.Controller;
+using TrickHop.Player;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.Movement
 {
 	public partial class Water : PredictedComponent
 	{
@@ -19,7 +22,7 @@ namespace Momentum
 		[Net]
 		public float JumpHeight { get; set; } = 256.0f;
 		[Net, Predicted]
-		public new WATERLEVEL WaterLevel { get; set; } = 0;
+		public WATERLEVEL WaterLevel { get; set; } = 0;
 		[Net, Predicted]
 		public WATERLEVEL OldWaterLevel { get; set; } = 0;
 

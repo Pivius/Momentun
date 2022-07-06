@@ -1,6 +1,6 @@
 using Sandbox;
 
-namespace Momentum
+namespace TrickHop.Player
 {
 	public partial class Properties : BaseNetworkable
 	{

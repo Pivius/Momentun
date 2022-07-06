@@ -1,6 +1,7 @@
 using Sandbox;
+using TrickHop.Utility;
 
-namespace Momentum
+namespace TrickHop.Player
 {
 	public class MomentumCamera : FirstPersonCamera
 	{

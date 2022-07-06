@@ -1,6 +1,6 @@
 using Sandbox;
 
-namespace Momentum
+namespace TrickHop.Movement
 {
 	public class Gravity
 	{

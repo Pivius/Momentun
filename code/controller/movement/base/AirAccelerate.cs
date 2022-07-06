@@ -1,8 +1,8 @@
 using Sandbox;
 
-namespace Momentum
+namespace TrickHop.Movement
 {
-	public partial class AirAccelerate : BaseNetworkable
+	public partial class AirAccelerate
 	{
 		// # Source Movement Air Accel
 

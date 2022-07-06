@@ -1,8 +1,11 @@
 using Sandbox;
 using System;
+using TrickHop.Movement;
+using TrickHop.Player;
+using TrickHop.Utility;
 using Trace = Sandbox.Trace;
 
-namespace Momentum
+namespace TrickHop.Controller
 {
 	public abstract partial class BaseController : WalkController
 	{
@@ -330,36 +333,6 @@ namespace Momentum
 			}
 		}
 
-		public virtual void OverBounce()
-		{
-			Vector3 point = Position - Vector3.Up * 0.25f;
-			TraceResult trace = TraceBBox( Position, point );
-			DebugOverlay.ScreenText( (Position.z).ToString(), 2 );
-			DebugOverlay.ScreenText( (trace.EndPosition.z).ToString(), 3 );
-			DebugOverlay.ScreenText( (Position.z - trace.EndPosition.z).ToString() );
-			
-			if ( trace.Fraction <= 0 ) 
-				return;
-			if ( trace.Fraction >= 1 ) 
-				return;
-			if ( trace.StartedSolid )
-				return;
-			if ( Vector3.GetAngle( Vector3.Up, trace.Normal ) > Player.Properties.StandableAngle ) 
-				return;
-			if ( Player.Properties.CanOverBounce && trace.Hit && Velocity.z < 150 )
-			{
-				//Log.Info( "Normal Vel: " +  Velocity );
-
-				float speed = Velocity.Length;
-					
-				Velocity = ClipVelocity( Velocity, trace.Normal, OverClip );
-				//Log.Info( "Clipped Vel: " + Velocity );
-				Velocity = Velocity.Normal * speed;
-				///Log.Info( "End Vel: " + Velocity );
-				CategorizePosition( false );
-			}
-		}
-
 		public virtual void ApplyFriction()
 		{
 			if ( OnGround() )
@@ -447,8 +420,6 @@ namespace Momentum
 
 				if ( Player.Properties.AutoJump ? Input.Down( InputButton.Jump ) : Input.Pressed( InputButton.Jump ) )
 					CheckJumpButton();
-
-				OverBounce();
 
 				ApplyFriction();
 

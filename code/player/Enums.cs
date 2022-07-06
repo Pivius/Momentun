@@ -1,4 +1,4 @@
-namespace Momentum
+namespace TrickHop.Player
 {
 	public enum STATE : int
 	{

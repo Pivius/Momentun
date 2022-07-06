@@ -2,8 +2,11 @@ using Sandbox;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using TrickHop.Controller;
+using TrickHop.Player;
+using TrickHop.Utility;
 
-namespace Momentum.Entities
+namespace TrickHop.Entities
 {
 	public enum ZONE_MODE : int
 	{
